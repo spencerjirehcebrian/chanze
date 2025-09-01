@@ -26,10 +26,10 @@ export function TodoItem({ todo, onToggle, onDelete, disabled = false }: TodoIte
   return (
     <div 
       onClick={handleToggle}
-      className={`group relative flex items-center py-3 px-4 rounded-lg cursor-pointer fade-in transition-all duration-300 
+      className={`group relative flex items-center py-3 px-4 rounded-lg cursor-pointer fade-in transition-all duration-300 border-l-4
         ${todo.is_complete 
-          ? 'border-l-4 border-primary hover:border-primary/80' 
-          : 'border-l-2 border-muted-foreground/30 hover:border-primary/50'
+          ? 'border-muted-foreground/30 hover:border-muted-foreground/50' 
+          : 'border-primary hover:border-primary/80'
         }
         ${disabled ? 'cursor-not-allowed opacity-50' : ''}
       `}
