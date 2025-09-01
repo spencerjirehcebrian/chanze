@@ -1,10 +1,10 @@
+import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { useTodos } from '../hooks';
-import { TodoForm, TodoList } from '../components';
+import { TodoList, Layout, AddTaskModal } from '../components';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ThemeToggle } from '../components/theme-toggle';
-import type { User, TodoFormData } from '../types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { User } from '../types';
 
 interface TodoPageProps {
   user: User;
@@ -12,6 +12,7 @@ interface TodoPageProps {
 }
 
 export function TodoPage({ user, onSignOut }: TodoPageProps) {
+  const [showAddModal, setShowAddModal] = useState(false);
   const {
     todos,
     isLoading,
@@ -24,9 +25,9 @@ export function TodoPage({ user, onSignOut }: TodoPageProps) {
     isToggling,
   } = useTodos();
 
-  const handleCreateTodo = async (data: TodoFormData) => {
+  const handleCreateTodo = async (task: string) => {
     await createTodo({
-      task: data.task,
+      task,
       user_id: user.id,
       is_complete: false,
     });
@@ -49,11 +50,11 @@ export function TodoPage({ user, onSignOut }: TodoPageProps) {
               <AlertCircle className="w-6 h-6" />
               Error
             </CardTitle>
-            <CardDescription>
-              {error instanceof Error ? error.message : 'Something went wrong'}
-            </CardDescription>
           </CardHeader>
           <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              {error instanceof Error ? error.message : 'Something went wrong'}
+            </p>
             <Button onClick={() => window.location.reload()}>
               Reload Page
             </Button>
@@ -64,49 +65,32 @@ export function TodoPage({ user, onSignOut }: TodoPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-md mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-3xl">My Todos</CardTitle>
-                <CardDescription className="text-lg">
-                  Stay organized and productive
-                </CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <ThemeToggle />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleSignOut}
-                >
-                  Sign Out
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <TodoForm 
-              onSubmit={handleCreateTodo} 
-              loading={isCreating} 
-            />
-
-            <TodoList
-              todos={todos}
-              onToggle={async (id, isComplete) => {
-                await toggleTodo({ id, isComplete });
-              }}
-              onDelete={async (id) => {
-                await deleteTodo(id);
-              }}
-              loading={isLoading}
-              disabled={isDeleting || isToggling}
-            />
-          </CardContent>
-        </Card>
+    <Layout
+      onAddTask={() => setShowAddModal(true)}
+      onSignOut={handleSignOut}
+    >
+      <div className="px-4 pt-8">
+        <div className="max-w-md mx-auto">
+          <TodoList
+            todos={todos}
+            onToggle={async (id, isComplete) => {
+              await toggleTodo({ id, isComplete });
+            }}
+            onDelete={async (id) => {
+              await deleteTodo(id);
+            }}
+            loading={isLoading}
+            disabled={isDeleting || isToggling}
+          />
+        </div>
       </div>
-    </div>
+
+      <AddTaskModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleCreateTodo}
+        loading={isCreating}
+      />
+    </Layout>
   );
 }

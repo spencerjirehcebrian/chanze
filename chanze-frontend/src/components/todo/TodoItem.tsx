@@ -1,7 +1,5 @@
-import { Trash2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card } from '@/components/ui/card';
 import type { Todo } from '../../types';
 
 interface TodoItemProps {
@@ -12,46 +10,49 @@ interface TodoItemProps {
 }
 
 export function TodoItem({ todo, onToggle, onDelete, disabled = false }: TodoItemProps) {
-  const handleToggle = (checked: boolean) => {
+  const handleToggle = async () => {
     if (!disabled) {
-      onToggle(todo.id, !checked);
+      await onToggle(todo.id, !todo.is_complete);
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering toggle when clicking delete
     if (!disabled) {
-      onDelete(todo.id);
+      await onDelete(todo.id);
     }
   };
 
   return (
-    <Card className="p-4 hover:shadow-md transition-all duration-200 group">
-      <div className="flex items-center gap-3">
-        <Checkbox
-          checked={todo.is_complete}
-          onCheckedChange={handleToggle}
-          disabled={disabled}
-          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-        />
-        <span
-          className={`flex-1 transition-all duration-200 ${
-            todo.is_complete
-              ? 'text-muted-foreground line-through opacity-75'
-              : 'text-foreground group-hover:text-primary'
-          }`}
-        >
-          {todo.task}
-        </span>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDelete}
-          disabled={disabled}
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </div>
-    </Card>
+    <div 
+      onClick={handleToggle}
+      className={`group relative flex items-center py-3 px-4 rounded-lg cursor-pointer fade-in transition-all duration-300 
+        ${todo.is_complete 
+          ? 'border-l-4 border-primary hover:border-primary/80' 
+          : 'border-l-2 border-muted-foreground/30 hover:border-primary/50'
+        }
+        ${disabled ? 'cursor-not-allowed opacity-50' : ''}
+      `}
+    >
+      <span
+        className={`flex-1 transition-all duration-300 select-none ${
+          todo.is_complete
+            ? 'text-muted-foreground opacity-40 line-through decoration-muted-foreground decoration-1 animate-strike-through'
+            : 'text-foreground hover:text-foreground/90'
+        }`}
+      >
+        {todo.task}
+      </span>
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleDelete}
+        disabled={disabled}
+        className="opacity-0 group-hover:opacity-100 transition-all duration-200 flex-shrink-0 text-muted-foreground hover:text-destructive w-8 h-8 p-0 hover:scale-110 active:scale-95 ml-2"
+      >
+        <X className="w-4 h-4" />
+      </Button>
+    </div>
   );
 }

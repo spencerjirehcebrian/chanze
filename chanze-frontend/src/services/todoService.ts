@@ -48,6 +48,6 @@ export class TodoService {
   }
 
   static async toggleTodo(id: number, isComplete: boolean): Promise<Todo> {
-    return this.updateTodo(id, { is_complete: !isComplete });
+    return this.updateTodo(id, { is_complete: isComplete });
   }
 }
