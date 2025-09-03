@@ -25,10 +25,10 @@ services:
   db:
     restart: 'no'
     volumes:
-      # Always use a fresh database when developing
-      - /var/lib/postgresql/data
-      # Seed data should be inserted last (alphabetical order)
+      # Use a separate dev data directory
+      - ./volumes/db/dev-data:/var/lib/postgresql/data:Z
       - ./dev/data.sql:/docker-entrypoint-initdb.d/seed.sql
   storage:
     volumes:
-      - /var/lib/storage
+      # Use a separate dev storage directory  
+      - ./volumes/storage-dev:/var/lib/storage:z

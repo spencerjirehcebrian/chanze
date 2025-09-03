@@ -358,10 +358,10 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
-    depends_on:
-      db:
+    # depends_on:
+      # db:
         # Disable this if you are using an external Postgres database
-        condition: service_healthy
+        # condition: service_healthy
     environment:
       LOGFLARE_NODE_HOST: 127.0.0.1
       DB_USERNAME: supabase_admin
