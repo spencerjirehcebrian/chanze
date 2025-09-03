@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button, Input } from '@/components/ui';
 
 interface AuthFormProps {
   onSignIn: (email: string, password: string) => Promise<void>;

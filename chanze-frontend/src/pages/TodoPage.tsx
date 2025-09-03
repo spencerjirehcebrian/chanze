@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { useTodos } from '../hooks';
 import { TodoList, Layout, AddTaskModal } from '../components';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { User } from '../types';
 

@@ -1,6 +1,10 @@
 export * from './ui';
 export * from './auth';
 export * from './todo';
+export * from './layout';
+export * from './forms';
+export * from './features';
+export * from './providers';
 export { ThemeToggle } from './theme-toggle';
-export { Layout } from './Layout';
+export { Layout } from './LegacyLayout';
 export { AddTaskModal } from './AddTaskModal';

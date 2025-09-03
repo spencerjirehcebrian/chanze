@@ -1,5 +1,10 @@
+/* Main stylesheet - imports and base styles */
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* Additional organized styles available in /src/styles/ */
+/* - globals.css: Global styles and CSS variables */
+/* - components.css: Component-specific utility classes */
 
 @custom-variant dark (&:is(.dark *));
 

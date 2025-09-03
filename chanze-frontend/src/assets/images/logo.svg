@@ -1,0 +1,5 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="8" fill="currentColor" fillOpacity="0.1"/>
+  <path d="M12 20c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8-8-3.582-8-8z" fill="currentColor"/>
+  <text x="50" y="25" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="currentColor">Chanze</text>
+</svg>

@@ -1,5 +1,5 @@
 import { Plus, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 import { ThemeToggle } from './theme-toggle';
 
 interface LayoutProps {

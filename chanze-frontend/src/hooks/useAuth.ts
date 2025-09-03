@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { AuthService } from '../services';
-import type { User, AuthState } from '../types';
+import type { User } from '../types/database';
+import type { AuthState } from '../types';
 
 export function useAuth(): AuthState & {
   signIn: (email: string, password: string) => Promise<void>;
