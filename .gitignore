@@ -1,3 +1,4 @@
-env
+.env
 chanze-supabase/volumes/db/data/
 chanze-supabase/volumes/db/dev-data/
+env
