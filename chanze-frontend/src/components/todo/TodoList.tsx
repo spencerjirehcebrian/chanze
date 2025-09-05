@@ -1,9 +1,8 @@
-import { TodoItem } from './TodoItem';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Todo } from '../../types';
+import type { Task } from '../../types/database';
 
 interface TodoListProps {
-  todos: Todo[];
+  todos: Task[];
   onToggle: (id: number, isComplete: boolean) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   loading?: boolean;
@@ -40,14 +39,33 @@ export function TodoList({
 
   return (
     <div className="space-y-1">
-      {todos.map((todo) => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          onToggle={onToggle}
-          onDelete={onDelete}
-          disabled={disabled}
-        />
+      {todos.map((task) => (
+        <div key={task.id} className="flex items-center gap-3 py-3 px-4 rounded-lg border bg-card text-card-foreground hover:bg-accent/50 transition-colors">
+          <input
+            type="checkbox"
+            checked={task.is_complete}
+            onChange={() => onToggle(task.id, !task.is_complete)}
+            disabled={disabled}
+            className="rounded border-border"
+          />
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm ${task.is_complete ? 'line-through text-muted-foreground' : ''}`}>
+              {task.task}
+            </p>
+            {task.due_date && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Due: {new Date(task.due_date).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => onDelete(task.id)}
+            disabled={disabled}
+            className="text-muted-foreground hover:text-destructive transition-colors text-sm"
+          >
+            Delete
+          </button>
+        </div>
       ))}
     </div>
   );

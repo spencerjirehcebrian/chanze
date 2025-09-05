@@ -9,43 +9,16 @@ export const ROUTES = {
   
   // Protected routes
   DASHBOARD: '/dashboard',
-  ANALYTICS: '/analytics',
-  
-  // User management
-  USERS: '/users',
-  USER_DETAIL: '/users/:id',
-  USER_PROFILE: '/profile',
-  USER_SETTINGS: '/settings',
-  
-  // Tasks (legacy)
-  TASKS: '/tasks',
-  TASK_DETAIL: '/tasks/:id',
   
   // Settings
   SETTINGS: '/settings',
-  SETTINGS_PROFILE: '/settings/profile',
-  SETTINGS_ACCOUNT: '/settings/account',
-  SETTINGS_NOTIFICATIONS: '/settings/notifications',
-  SETTINGS_PRIVACY: '/settings/privacy',
-  SETTINGS_BILLING: '/settings/billing',
+  USER_PROFILE: '/profile',
   
   // Error pages
   NOT_FOUND: '/404',
   SERVER_ERROR: '/500',
   UNAUTHORIZED: '/401',
   FORBIDDEN: '/403',
-  
-  // Special pages
-  MAINTENANCE: '/maintenance',
-  COMING_SOON: '/coming-soon',
-} as const
-
-// Route builders for dynamic routes
-export const ROUTE_BUILDERS = {
-  USER_DETAIL: (id: string) => `/users/${id}`,
-  USER_EDIT: (id: string) => `/users/${id}/edit`,
-  TASK_DETAIL: (id: string) => `/tasks/${id}`,
-  TASK_EDIT: (id: string) => `/tasks/${id}/edit`,
 } as const
 
 // External routes
@@ -54,17 +27,11 @@ export const EXTERNAL_ROUTES = {
   TERMS_OF_SERVICE: '/terms',
   HELP_CENTER: '/help',
   CONTACT: '/contact',
-  BLOG: '/blog',
-  DOCUMENTATION: '/docs',
 } as const
 
 // API route patterns (for server-side routing)
 export const API_ROUTES = {
   AUTH: '/api/auth/*',
-  USERS: '/api/users/*',
-  TASKS: '/api/tasks/*',
-  FILES: '/api/files/*',
-  WEBHOOKS: '/api/webhooks/*',
 } as const
 
 // Route metadata for navigation and breadcrumbs
@@ -82,21 +49,6 @@ export const ROUTE_META = {
     requiresAuth: true,
     showInNav: true,
     breadcrumb: 'Dashboard',
-  },
-  [ROUTES.ANALYTICS]: {
-    title: 'Analytics',
-    description: 'Analytics and reports',
-    requiresAuth: true,
-    showInNav: true,
-    breadcrumb: 'Analytics',
-  },
-  [ROUTES.USERS]: {
-    title: 'Users',
-    description: 'User management',
-    requiresAuth: true,
-    showInNav: true,
-    breadcrumb: 'Users',
-    permissions: ['manage_users'],
   },
   [ROUTES.USER_PROFILE]: {
     title: 'Profile',
@@ -136,19 +88,6 @@ export const NAVIGATION = {
       href: ROUTES.DASHBOARD,
       icon: 'Home',
       requiresAuth: true,
-    },
-    {
-      name: 'Analytics',
-      href: ROUTES.ANALYTICS,
-      icon: 'BarChart3',
-      requiresAuth: true,
-    },
-    {
-      name: 'Users',
-      href: ROUTES.USERS,
-      icon: 'Users',
-      requiresAuth: true,
-      permissions: ['manage_users'],
     },
     {
       name: 'Settings',
@@ -199,12 +138,7 @@ export const ROUTE_GROUPS = {
   ],
   PROTECTED: [
     ROUTES.DASHBOARD,
-    ROUTES.ANALYTICS,
-    ROUTES.USERS,
     ROUTES.USER_PROFILE,
     ROUTES.SETTINGS,
-  ],
-  ADMIN_ONLY: [
-    ROUTES.USERS,
   ],
 } as const

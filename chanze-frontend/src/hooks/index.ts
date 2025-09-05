@@ -7,5 +7,8 @@ export * from './api'
 // Common utility hooks
 export * from './common'
 
-// Legacy exports
-export * from './useTodos'
+// Task management hooks
+export * from './useTasks'
+
+// Legacy compatibility
+export * from './useAuth'

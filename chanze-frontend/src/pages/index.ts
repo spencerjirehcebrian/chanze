@@ -4,9 +4,6 @@ export * from './auth'
 // Dashboard pages
 export * from './dashboard'
 
-// Users pages
-export * from './users'
-
 // Settings pages
 export * from './settings'
 

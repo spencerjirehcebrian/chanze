@@ -4,7 +4,7 @@ import { useTodos } from '../hooks';
 import { TodoList, Layout, AddTaskModal } from '../components';
 import { Button } from '@/components/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { User } from '../types';
+import type { User } from '../types/database';
 
 interface TodoPageProps {
   user: User;
@@ -29,7 +29,6 @@ export function TodoPage({ user, onSignOut }: TodoPageProps) {
     await createTodo({
       task,
       user_id: user.id,
-      is_complete: false,
     });
   };
 
@@ -77,7 +76,7 @@ export function TodoPage({ user, onSignOut }: TodoPageProps) {
               await toggleTodo({ id, isComplete });
             }}
             onDelete={async (id) => {
-              await deleteTodo(id);
+              await deleteTodo({ id });
             }}
             loading={isLoading}
             disabled={isDeleting || isToggling}
