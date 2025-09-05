@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: taskapp_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: taskapp
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - taskapp-network
+
+  # Mongo Express (MongoDB Web UI)
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: taskapp_mongo_express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    networks:
+      - taskapp-network
+
+  # MailHog (Development Email Server)
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: taskapp_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - taskapp-network
+
+  # FastAPI Backend
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taskapp_backend
+    restart: unless-stopped
+    environment:
+      # Database
+      MONGODB_URL: mongodb://admin:password123@mongodb:27017/taskapp?authSource=admin
+      
+      # JWT Configuration
+      SECRET_KEY: your-super-secret-key-change-in-production
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+      
+      # Email Configuration (MailHog)
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_TLS: false
+      FROM_EMAIL: noreply@taskapp.local
+      
+      # Application Settings
+      APP_NAME: Task Management API
+      FRONTEND_URL: http://localhost:3000
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - mongodb
+      - mailhog
+    networks:
+      - taskapp-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taskapp_frontend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_ENVIRONMENT=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - taskapp-network
+    stdin_open: true
+    tty: true
+
+volumes:
+  mongodb_data:
+
+networks:
+  taskapp-network:
+    driver: bridge
