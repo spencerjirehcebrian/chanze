@@ -16,23 +16,7 @@ from app.models.task_item import TaskItem
 from app.core.security import create_access_token, get_password_hash
 from app.core.database import connect_to_mongo, close_mongo_connection
 
-
-class TestSettings:
-    mongodb_url: str = "mongodb://localhost:27017/chanze_test"
-    secret_key: str = "test-secret-key"
-    access_token_expire_minutes: int = 30
-    algorithm: str = "HS256"
-    smtp_host: str = "localhost"
-    smtp_port: int = 1025
-    smtp_user: str = "test"
-    smtp_password: str = "test"
-    from_email: str = "test@chanze.app"
-    app_name: str = "Chanze Test API"
-    frontend_url: str = "http://localhost:3000"
-    debug: bool = True
-    bcrypt_rounds: int = 4  # Lower for faster tests
-    email_verification_expire_hours: int = 1
-    password_reset_expire_hours: int = 1
+# Note: Test settings are loaded automatically from .env.test when running pytest
 
 
 @pytest.fixture(scope="session")
@@ -43,17 +27,18 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     loop.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_test_db():
     """Set up test database connection."""
-    # Override settings for testing
-    settings.mongodb_url = TestSettings.mongodb_url
-    settings.bcrypt_rounds = TestSettings.bcrypt_rounds
+    # Settings are automatically loaded from .env.test when running pytest
     
     # Connect to test database
-    client = AsyncIOMotorClient(TestSettings.mongodb_url)
+    client = AsyncIOMotorClient(settings.mongodb_url)
+    database = client.get_database("chanze_test")
+    
+    # Initialize Beanie with the document models
     await init_beanie(
-        database=client.get_database("chanze_test"),
+        database=database,
         document_models=[User, TaskTemplate, TaskItem]
     )
     
@@ -65,7 +50,7 @@ async def setup_test_db():
 
 
 @pytest_asyncio.fixture
-async def clean_db():
+async def clean_db(setup_test_db):
     """Clean database before each test."""
     await User.delete_all()
     await TaskTemplate.delete_all()

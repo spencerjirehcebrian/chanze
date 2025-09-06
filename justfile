@@ -146,11 +146,11 @@ api-docs:
 
 # Run backend tests
 test-backend:
-    cd backend && python -m pytest -v
+    cd backend && poetry run pytest -v
 
 # Run backend tests with coverage
 test-backend-coverage:
-    cd backend && python -m pytest -v --cov=. --cov-report=html
+    cd backend && poetry run pytest -v --cov=. --cov-report=html
 
 # Run frontend tests
 test-frontend:
