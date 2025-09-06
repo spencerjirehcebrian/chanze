@@ -13,7 +13,7 @@ from app.config import settings
 from app.models.user import User
 from app.models.task_template import TaskTemplate
 from app.models.task_item import TaskItem
-from app.core.security import create_access_token, hash_password
+from app.core.security import create_access_token, get_password_hash
 from app.core.database import connect_to_mongo, close_mongo_connection
 
 
@@ -91,7 +91,7 @@ async def test_user(clean_db) -> User:
     """Create a test user."""
     user = User(
         email="test@example.com",
-        password_hash=hash_password("testpassword123"),
+        password_hash=get_password_hash("testpassword123"),
         is_active=True,
         is_verified=True,
         created_at=datetime.utcnow(),
@@ -106,7 +106,7 @@ async def unverified_test_user(clean_db) -> User:
     """Create an unverified test user."""
     user = User(
         email="unverified@example.com",
-        password_hash=hash_password("testpassword123"),
+        password_hash=get_password_hash("testpassword123"),
         is_active=True,
         is_verified=False,
         email_verification_token="test_verification_token",
@@ -122,7 +122,7 @@ async def test_user_with_reset_token(clean_db) -> User:
     """Create a test user with password reset token."""
     user = User(
         email="reset@example.com",
-        password_hash=hash_password("testpassword123"),
+        password_hash=get_password_hash("testpassword123"),
         is_active=True,
         is_verified=True,
         password_reset_token="test_reset_token",
@@ -175,7 +175,7 @@ async def multiple_test_users(clean_db) -> list[User]:
     for i in range(3):
         user = User(
             email=f"user{i}@example.com",
-            password_hash=hash_password("testpassword123"),
+            password_hash=get_password_hash("testpassword123"),
             is_active=True,
             is_verified=True,
             created_at=datetime.utcnow(),

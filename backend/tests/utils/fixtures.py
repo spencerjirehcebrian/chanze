@@ -8,7 +8,7 @@ from typing import List
 from app.models.user import User
 from app.models.task_template import TaskTemplate
 from app.models.task_item import TaskItem
-from app.core.security import hash_password
+from app.core.security import get_password_hash
 from tests.utils.helpers import (
     generate_random_email, 
     generate_test_password,
@@ -26,7 +26,7 @@ async def users_factory(clean_db):
         for i in range(count):
             user = User(
                 email=generate_random_email(),
-                password_hash=hash_password(generate_test_password()),
+                password_hash=get_password_hash(generate_test_password()),
                 is_active=active,
                 is_verified=verified,
                 created_at=datetime.utcnow(),
@@ -116,7 +116,7 @@ async def user_with_expired_tokens(clean_db):
     """Create a user with expired tokens for testing."""
     user = User(
         email=generate_random_email(),
-        password_hash=hash_password(generate_test_password()),
+        password_hash=get_password_hash(generate_test_password()),
         is_active=True,
         is_verified=False,
         email_verification_token="expired_verification_token",
@@ -138,7 +138,7 @@ async def user_with_valid_reset_token(clean_db):
     """Create a user with valid password reset token."""
     user = User(
         email=generate_random_email(),
-        password_hash=hash_password(generate_test_password()),
+        password_hash=get_password_hash(generate_test_password()),
         is_active=True,
         is_verified=True,
         password_reset_token="valid_reset_token",
@@ -168,7 +168,7 @@ async def complete_user_setup(clean_db):
     # Create user
     user = User(
         email=generate_random_email(),
-        password_hash=hash_password(generate_test_password()),
+        password_hash=get_password_hash(generate_test_password()),
         is_active=True,
         is_verified=True,
         created_at=datetime.utcnow(),

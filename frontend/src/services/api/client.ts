@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { TokenManager } from '../../utils/token'
 
 export class ApiError extends Error {
   status?: number
@@ -54,22 +54,15 @@ class ApiClient {
     }
   }
 
-  private async getAuthHeaders(): Promise<Record<string, string>> {
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    return {
-      'Content-Type': 'application/json',
-      ...(session?.access_token && {
-        Authorization: `Bearer ${session.access_token}`
-      })
-    }
+  private getAuthHeaders(): Record<string, string> {
+    return TokenManager.createAuthHeaders()
   }
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'GET',
-        headers: await this.getAuthHeaders(),
+        headers: this.getAuthHeaders(),
       })
       
       return this.handleResponse<T>(response)
@@ -87,7 +80,7 @@ class ApiClient {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'POST',
-        headers: await this.getAuthHeaders(),
+        headers: this.getAuthHeaders(),
         body: data ? JSON.stringify(data) : undefined,
       })
       
@@ -106,7 +99,7 @@ class ApiClient {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'PUT',
-        headers: await this.getAuthHeaders(),
+        headers: this.getAuthHeaders(),
         body: data ? JSON.stringify(data) : undefined,
       })
       
@@ -125,7 +118,7 @@ class ApiClient {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'DELETE',
-        headers: await this.getAuthHeaders(),
+        headers: this.getAuthHeaders(),
       })
       
       return this.handleResponse<T>(response)

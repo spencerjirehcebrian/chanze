@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { AxiosInstance, InternalAxiosRequestConfig, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
-import { supabase } from './supabase'
+import { TokenManager } from '../utils/token'
+import { AuthService } from '../services/authService'
 
 // Create axios instance
 const axiosInstance: AxiosInstance = axios.create({
@@ -15,11 +16,12 @@ const axiosInstance: AxiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      // Get current valid token (this will refresh if needed)
+      const tokens = await AuthService.getCurrentSession()
       
-      if (session?.access_token) {
+      if (tokens?.accessToken) {
         if (config.headers) {
-          config.headers.Authorization = `Bearer ${session.access_token}`
+          config.headers.Authorization = `Bearer ${tokens.accessToken}`
         }
       }
     } catch (error) {
@@ -40,16 +42,27 @@ axiosInstance.interceptors.response.use(
   },
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized - refresh token or redirect to login
+      // Handle unauthorized - attempt token refresh
       try {
-        const { error: refreshError } = await supabase.auth.refreshSession()
-        if (!refreshError) {
-          // Retry the original request
+        const refreshResult = await AuthService.refreshToken()
+        
+        if (refreshResult.data && !refreshResult.error) {
+          // Retry the original request with new token
+          if (error.config?.headers) {
+            error.config.headers.Authorization = `Bearer ${refreshResult.data.accessToken}`
+          }
           return axiosInstance.request(error.config!)
         }
       } catch (refreshError) {
-        // Refresh failed, redirect to login
-        await supabase.auth.signOut()
+        console.error('Token refresh failed:', refreshError)
+      }
+      
+      // Refresh failed or not possible, clear auth and redirect
+      TokenManager.clearAuth()
+      
+      // Only redirect if not already on auth pages
+      const currentPath = window.location.pathname
+      if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
         window.location.href = '/login'
       }
     }

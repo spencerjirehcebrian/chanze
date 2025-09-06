@@ -1,204 +1,195 @@
-import { supabase } from '../lib/supabase';
+import { httpClient } from '../lib/axios';
 import type { Task, CreateTaskRequest, TaskTemplate } from '../types/database';
 
 export class TaskService {
+  private static readonly BASE_PATH = '/tasks';
+
   // Core CRUD operations
   static async getAllTasks(): Promise<Task[]> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('is_template', false) // Only get actual tasks, not templates
-      .order('inserted_at', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    try {
+      const response = await httpClient.get<Task[]>(`${this.BASE_PATH}?is_template=false`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch tasks:', error);
+      throw new Error('Failed to fetch tasks');
+    }
   }
 
   static async getTasksForDateRange(startDate: Date, endDate: Date): Promise<Task[]> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('is_template', false)
-      .gte('due_date', startDate.toISOString().split('T')[0])
-      .lte('due_date', endDate.toISOString().split('T')[0])
-      .order('due_date', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    try {
+      const params = new URLSearchParams({
+        is_template: 'false',
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      });
+      
+      const response = await httpClient.get<Task[]>(`${this.BASE_PATH}?${params}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch tasks for date range:', error);
+      throw new Error('Failed to fetch tasks for date range');
+    }
   }
 
   static async createTask(taskData: CreateTaskRequest): Promise<Task> {
-    const taskToInsert = {
-      ...taskData,
-      is_complete: false,
-      is_repeating: taskData.is_repeating || false,
-      is_template: false,
-      priority: taskData.priority || 0,
-    };
+    try {
+      const taskToCreate = {
+        ...taskData,
+        is_complete: false,
+        is_repeating: taskData.is_repeating || false,
+        is_template: false,
+        priority: taskData.priority || 0,
+      };
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert([taskToInsert])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+      const response = await httpClient.post<Task>(this.BASE_PATH, taskToCreate);
+      if (!response.data) {
+        throw new Error('No data returned from create task');
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      throw new Error('Failed to create task');
+    }
   }
 
   static async createTaskTemplate(templateData: CreateTaskRequest): Promise<Task> {
-    const template = {
-      ...templateData,
-      is_complete: false,
-      is_repeating: true,
-      is_template: true,
-      priority: templateData.priority || 0,
-    };
+    try {
+      const template = {
+        ...templateData,
+        is_complete: false,
+        is_repeating: true,
+        is_template: true,
+        priority: templateData.priority || 0,
+      };
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert([template])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+      const response = await httpClient.post<Task>(`${this.BASE_PATH}/templates`, template);
+      if (!response.data) {
+        throw new Error('No data returned from create template');
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create task template:', error);
+      throw new Error('Failed to create task template');
+    }
   }
 
   static async createTaskInstance(templateId: number, dueDate: string): Promise<Task> {
-    // Get the template
-    const template = await this.getTask(templateId);
-    if (!template || !template.is_template) {
-      throw new Error('Template not found');
+    try {
+      const response = await httpClient.post<Task>(`${this.BASE_PATH}/templates/${templateId}/instances`, {
+        due_date: dueDate
+      });
+      if (!response.data) {
+        throw new Error('No data returned from create task instance');
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create task instance:', error);
+      throw new Error('Failed to create task instance');
     }
-
-    const instance = {
-      task: template.task,
-      user_id: template.user_id,
-      due_date: dueDate,
-      is_complete: false,
-      is_repeating: false,
-      is_template: false,
-      template_id: templateId,
-      priority: template.priority,
-      tags: template.tags,
-      notes: template.notes,
-    };
-
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert([instance])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
   }
 
   static async getTask(id: number): Promise<Task | null> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) return null;
-    return data;
+    try {
+      const response = await httpClient.get<Task>(`${this.BASE_PATH}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch task:', error);
+      return null;
+    }
   }
 
-  static async updateTask(
-    id: number, 
-    updates: Partial<Task>
-  ): Promise<Task> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+  static async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
+    try {
+      const response = await httpClient.put<Task>(`${this.BASE_PATH}/${id}`, updates);
+      if (!response.data) {
+        throw new Error('No data returned from update task');
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      throw new Error('Failed to update task');
+    }
   }
 
   static async deleteTask(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    try {
+      await httpClient.delete(`${this.BASE_PATH}/${id}`);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      throw new Error('Failed to delete task');
+    }
   }
 
   static async toggleTask(id: number, isComplete: boolean): Promise<Task> {
-    const updates: Partial<Task> = { 
-      is_complete: isComplete,
-      completed_at: isComplete ? new Date().toISOString() : undefined
-    };
-    
-    return this.updateTask(id, updates);
+    try {
+      const updates: Partial<Task> = { 
+        is_complete: isComplete,
+        completed_at: isComplete ? new Date().toISOString() : undefined
+      };
+      
+      return this.updateTask(id, updates);
+    } catch (error) {
+      console.error('Failed to toggle task:', error);
+      throw new Error('Failed to toggle task');
+    }
   }
 
   // Template management
   static async getTaskTemplates(): Promise<TaskTemplate[]> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('is_template', true)
-      .eq('is_repeating', true)
-      .order('inserted_at', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    try {
+      const response = await httpClient.get<TaskTemplate[]>(`${this.BASE_PATH}/templates`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch task templates:', error);
+      throw new Error('Failed to fetch task templates');
+    }
   }
 
   static async getActiveTemplates(): Promise<TaskTemplate[]> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('is_template', true)
-      .eq('is_repeating', true)
-      .or('repeat_until.is.null,repeat_until.gte.' + new Date().toISOString().split('T')[0])
-      .order('inserted_at', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await httpClient.get<TaskTemplate[]>(
+        `${this.BASE_PATH}/templates?active=true&date=${today}`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch active templates:', error);
+      throw new Error('Failed to fetch active templates');
+    }
   }
 
   static async getTasksByPriority(priority: 0 | 1 | 2): Promise<Task[]> {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('is_template', false)
-      .eq('priority', priority)
-      .order('due_date', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    try {
+      const response = await httpClient.get<Task[]>(
+        `${this.BASE_PATH}?is_template=false&priority=${priority}`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch tasks by priority:', error);
+      throw new Error('Failed to fetch tasks by priority');
+    }
   }
 
   static async getOverdueTasks(): Promise<Task[]> {
-    const today = new Date().toISOString().split('T')[0];
-    
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('is_template', false)
-      .eq('is_complete', false)
-      .lt('due_date', today)
-      .order('due_date', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await httpClient.get<Task[]>(
+        `${this.BASE_PATH}?is_template=false&is_complete=false&overdue=true&date=${today}`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch overdue tasks:', error);
+      throw new Error('Failed to fetch overdue tasks');
+    }
   }
 
   static async deleteAllInstancesForTemplate(templateId: number): Promise<void> {
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('template_id', templateId);
-
-    if (error) throw error;
+    try {
+      await httpClient.delete(`${this.BASE_PATH}/templates/${templateId}/instances`);
+    } catch (error) {
+      console.error('Failed to delete template instances:', error);
+      throw new Error('Failed to delete template instances');
+    }
   }
 
   // Legacy compatibility methods

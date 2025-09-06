@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, Plus, Calendar, Repeat, Tag, FileText, Template } from 'lucide-react';
+import { AlertCircle, Plus, Calendar, Repeat, Tag, FileText, File } from 'lucide-react';
 import { Button, Input, Switch, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import type { CreateTaskRequest } from '../../types/database';
 import { TaskService } from '../../services';
@@ -170,7 +170,7 @@ export function TaskForm({ onSubmit, onSubmitTemplate, loading = false, expanded
                 size="sm"
                 onClick={() => setIsTemplateMode(!isTemplateMode)}
               >
-                <Template className="w-4 h-4 mr-1" />
+                <File className="w-4 h-4 mr-1" />
                 {isTemplateMode ? 'Template' : 'Template'}
               </Button>
             )}
@@ -374,7 +374,7 @@ export function TaskForm({ onSubmit, onSubmitTemplate, loading = false, expanded
               {isTemplateMode && (
                 <div>
                   <label className="text-sm font-medium flex items-center gap-2">
-                    <Template className="w-4 h-4" />
+                    <File className="w-4 h-4" />
                     Template Repeat Pattern
                   </label>
                   <p className="text-xs text-muted-foreground mb-3">

@@ -1,10 +1,11 @@
 import { ClipboardList } from 'lucide-react';
 import { AuthForm } from '../components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { SignInCredentials, SignUpCredentials } from '../types/auth';
 
 interface AuthPageProps {
-  onSignIn: (email: string, password: string) => Promise<void>;
-  onSignUp: (email: string, password: string) => Promise<void>;
+  onSignIn: (credentials: SignInCredentials) => Promise<void>;
+  onSignUp: (credentials: SignUpCredentials) => Promise<void>;
   loading?: boolean;
 }
 

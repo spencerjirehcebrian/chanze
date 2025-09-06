@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from app.services.auth_service import auth_service
 from app.models.user import User
 from app.schemas.auth import UserRegister, UserLogin
-from app.core.security import hash_password, generate_random_token
+from app.core.security import get_password_hash, generate_random_token
 
 
 @pytest.mark.integration
@@ -121,7 +121,7 @@ class TestAuthenticationFlow:
         # Create unverified user manually
         user = User(
             email="expired@example.com",
-            password_hash=hash_password("testpassword123"),
+            password_hash=get_password_hash("testpassword123"),
             is_active=True,
             is_verified=False,
             email_verification_token="expired_token"
@@ -142,7 +142,7 @@ class TestAuthenticationFlow:
         # Create user with expired reset token
         user = User(
             email="reset@example.com",
-            password_hash=hash_password("testpassword123"),
+            password_hash=get_password_hash("testpassword123"),
             is_active=True,
             is_verified=True,
             password_reset_token="expired_reset_token",

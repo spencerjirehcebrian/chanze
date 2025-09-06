@@ -1,121 +1,57 @@
-import { supabase } from '@/lib/supabase'
-import type { User } from '@supabase/supabase-js'
+import { AuthService } from '../authService'
+import type { User, SignInCredentials, SignUpCredentials, AuthTokens } from '../../types/auth'
 
-export interface SignInCredentials {
-  email: string
-  password: string
-}
+export type { SignInCredentials, SignUpCredentials } from '../../types/auth'
 
-export interface SignUpCredentials {
-  email: string
-  password: string
-  firstName?: string
-  lastName?: string
-}
-
-export interface AuthResponse {
-  user: User | null
+export interface AuthResponse<T = any> {
+  data: T | null
   error: Error | null
 }
 
-class AuthService {
-  async signIn({ email, password }: SignInCredentials): Promise<AuthResponse> {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+export interface LoginResponse {
+  user: User
+  tokens: AuthTokens
+}
 
-      if (error) {
-        return { user: null, error }
-      }
+export interface RegisterResponse {
+  user: User
+  message: string
+}
 
-      return { user: data.user, error: null }
-    } catch (error) {
-      return {
-        user: null,
-        error: error instanceof Error ? error : new Error('Sign in failed')
-      }
-    }
+// Re-export the main AuthService with a different name for backward compatibility
+export class ApiAuthService {
+  static async signIn(credentials: SignInCredentials): Promise<AuthResponse<LoginResponse>> {
+    return AuthService.signInWithPassword(credentials)
   }
 
-  async signUp({ email, password, firstName, lastName }: SignUpCredentials): Promise<AuthResponse> {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          }
-        }
-      })
-
-      if (error) {
-        return { user: null, error }
-      }
-
-      return { user: data.user, error: null }
-    } catch (error) {
-      return {
-        user: null,
-        error: error instanceof Error ? error : new Error('Sign up failed')
-      }
-    }
+  static async signUp(credentials: SignUpCredentials): Promise<AuthResponse<RegisterResponse>> {
+    return AuthService.signUp(credentials)
   }
 
-  async signOut(): Promise<{ error: Error | null }> {
-    try {
-      const { error } = await supabase.auth.signOut()
-      return { error }
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error : new Error('Sign out failed')
-      }
-    }
+  static async signOut(): Promise<AuthResponse<void>> {
+    return AuthService.signOut()
   }
 
-  async getCurrentUser(): Promise<{ user: User | null; error: Error | null }> {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error) {
-        return { user: null, error }
-      }
-
-      return { user, error: null }
-    } catch (error) {
-      return {
-        user: null,
-        error: error instanceof Error ? error : new Error('Failed to get current user')
-      }
-    }
+  static async getCurrentUser(): Promise<User | null> {
+    return AuthService.getCurrentUser()
   }
 
-  async refreshSession(): Promise<{ error: Error | null }> {
-    try {
-      const { error } = await supabase.auth.refreshSession()
-      return { error }
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error : new Error('Failed to refresh session')
-      }
-    }
+  static async getCurrentSession(): Promise<AuthTokens | null> {
+    return AuthService.getCurrentSession()
   }
 
-  async resetPassword(email: string): Promise<{ error: Error | null }> {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      })
-      return { error }
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error : new Error('Failed to send reset password email')
-      }
-    }
+  static async refreshSession(): Promise<AuthResponse<AuthTokens>> {
+    return AuthService.refreshToken()
+  }
+
+  static async resetPassword(email: string): Promise<AuthResponse<{ message: string }>> {
+    return AuthService.resetPassword(email)
+  }
+
+  static async changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse<{ message: string }>> {
+    return AuthService.changePassword(currentPassword, newPassword)
   }
 }
 
-export const authService = new AuthService()
+// Default export for backward compatibility
+export const authService = ApiAuthService

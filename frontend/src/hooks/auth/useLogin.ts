@@ -11,11 +11,7 @@ export function useLogin() {
     setError(null)
     
     try {
-      const { error } = await signIn(email, password)
-      if (error) {
-        setError(error.message)
-        return { success: false, error: error.message }
-      }
+      await signIn({ email, password })
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'

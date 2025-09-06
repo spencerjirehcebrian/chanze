@@ -11,7 +11,7 @@ default:
 
 # Start all services in development mode
 up:
-    docker-compose up -d
+    docker-compose up -d 
 
 # Start all services and follow logs
 up-logs:
@@ -120,9 +120,9 @@ db-reset:
 # Email & External Services
 # =============================================================================
 
-# Open MailHog web interface
-mailhog:
-    @echo "Opening MailHog at http://localhost:8025"
+# Open MailPit web interface
+mailpit:
+    @echo "Opening Mailpit at http://localhost:8025"
     open http://localhost:8025 || xdg-open http://localhost:8025
 
 # Open Mongo Express web interface
@@ -206,6 +206,8 @@ health:
     @curl -s http://localhost:3000 > /dev/null && echo "Frontend OK" || echo "Frontend not responding"
     @echo "MongoDB:"
     @docker-compose exec mongodb mongosh -u admin -p password123 --authenticationDatabase admin --quiet --eval "print('MongoDB OK')" || echo "MongoDB not responding"
+    @echo "Mailpit:"
+    @curl -s http://localhost:8025 > /dev/null && echo "Mailpit OK" || echo "Mailpit not responding"
 
 # =============================================================================
 # Utility Commands

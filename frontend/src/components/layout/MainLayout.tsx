@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Home, Calendar, Template, LogOut, Plus, Menu, X } from 'lucide-react';
+import { Home, Calendar, FileText, LogOut, Plus, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { ThemeToggle } from '../theme-toggle';
 
@@ -13,7 +13,7 @@ interface MainLayoutProps {
 const NAVIGATION_ITEMS = [
   { id: 'dashboard' as const, label: 'Dashboard', icon: Home },
   { id: 'calendar' as const, label: 'Calendar', icon: Calendar },
-  { id: 'templates' as const, label: 'Templates', icon: Template },
+  { id: 'templates' as const, label: 'Templates', icon: FileText },
 ];
 
 export function MainLayout({ children, currentPage, onPageChange, onSignOut }: MainLayoutProps) {

@@ -1,8 +1,20 @@
-import type { User as SupabaseUser } from '@supabase/supabase-js'
-
-// Extend Supabase User with app-specific fields
-export interface User extends SupabaseUser {
-  profile?: UserProfile
+// Custom User interface for backend compatibility
+export interface User {
+  id: string;
+  email: string;
+  email_verified?: boolean;
+  phone?: string;
+  phone_verified?: boolean;
+  created_at: string;
+  updated_at: string;
+  last_sign_in_at?: string;
+  
+  // App metadata
+  user_metadata?: Record<string, any>;
+  app_metadata?: Record<string, any>;
+  
+  // Profile data
+  profile?: UserProfile;
 }
 
 export interface UserProfile {
@@ -56,9 +68,11 @@ export interface SignUpCredentials {
 }
 
 export interface AuthTokens {
-  accessToken: string
-  refreshToken: string
-  expiresAt: number
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number; // Unix timestamp in milliseconds
+  tokenType?: string; // Usually 'Bearer'
+  scope?: string;
 }
 
 export interface AuthSession {

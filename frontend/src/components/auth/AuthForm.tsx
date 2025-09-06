@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
+import type { SignInCredentials, SignUpCredentials } from '../../types/auth';
 
 interface AuthFormProps {
-  onSignIn: (email: string, password: string) => Promise<void>;
-  onSignUp: (email: string, password: string) => Promise<void>;
+  onSignIn: (credentials: SignInCredentials) => Promise<void>;
+  onSignUp: (credentials: SignUpCredentials) => Promise<void>;
   loading?: boolean;
 }
 
@@ -42,9 +43,9 @@ export function AuthForm({ onSignIn, onSignUp, loading = false }: AuthFormProps)
       setError('');
       
       if (isSignUp) {
-        await onSignUp(email, password);
+        await onSignUp({ email, password, acceptTerms: true });
       } else {
-        await onSignIn(email, password);
+        await onSignIn({ email, password });
       }
       
       setEmail('');

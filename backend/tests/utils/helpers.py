@@ -9,7 +9,7 @@ from httpx import AsyncClient
 from app.models.user import User
 from app.models.task_template import TaskTemplate
 from app.models.task_item import TaskItem
-from app.core.security import hash_password, create_access_token
+from app.core.security import get_password_hash, create_access_token
 
 
 def generate_random_string(length: int = 10) -> str:
@@ -44,7 +44,7 @@ async def create_test_user(
     
     user = User(
         email=email,
-        password_hash=hash_password(password),
+        password_hash=get_password_hash(password),
         is_active=is_active,
         is_verified=is_verified,
         created_at=datetime.utcnow(),
