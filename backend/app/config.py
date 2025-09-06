@@ -44,7 +44,10 @@ class Settings(BaseSettings):
 # Determine which env file to use based on environment
 def get_env_file() -> str:
     """Get the appropriate env file based on environment."""
-    if "pytest" in os.getenv("_", ""):
+    import sys
+    
+    # Check if pytest is running
+    if "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in os.environ:
         return ".env.test"
     elif os.getenv("ENVIRONMENT") == "test":
         return ".env.test"

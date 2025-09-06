@@ -32,9 +32,14 @@ async def setup_test_db():
     """Set up test database connection."""
     # Settings are automatically loaded from .env.test when running pytest
     
-    # Connect to test database
+    # Connect to test database using the URL from settings
     client = AsyncIOMotorClient(settings.mongodb_url)
-    database = client.get_database("chanze_test")
+    
+    # Extract database name from the mongodb_url
+    from urllib.parse import urlparse
+    parsed_url = urlparse(settings.mongodb_url)
+    db_name = parsed_url.path.lstrip('/')
+    database = client.get_database(db_name)
     
     # Initialize Beanie with the document models
     await init_beanie(
@@ -45,7 +50,7 @@ async def setup_test_db():
     yield
     
     # Clean up
-    await client.drop_database("chanze_test")
+    await client.drop_database(db_name)
     client.close()
 
 
@@ -119,8 +124,8 @@ async def test_user_with_reset_token(clean_db) -> User:
     return user
 
 
-@pytest.fixture
-def auth_headers(test_user: User) -> dict:
+@pytest_asyncio.fixture
+async def auth_headers(test_user: User) -> dict:
     """Create authorization headers for test user."""
     token = create_access_token(data={"sub": str(test_user.id)})
     return {"Authorization": f"Bearer {token}"}
