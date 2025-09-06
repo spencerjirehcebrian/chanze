@@ -1,275 +1,464 @@
 # Chanze Backend API
 
-FastAPI backend service for Chanze - Email authentication & task management system.
+> FastAPI backend for Chanze - A task management system with email authentication and template-based task organization.
 
-## Features
+## 🚀 Quick Start
 
-- 🔐 **Email Authentication**: Registration, verification, login, password reset
-- 📝 **Task Management**: Create and manage task templates and task items
-- 🛡️ **Security**: JWT tokens, bcrypt password hashing, input validation
-- 📧 **Email Service**: HTML email templates with SMTP support
-- 🗄️ **MongoDB**: Document-based storage with Beanie ODM
-- 🐳 **Docker**: Full containerization with docker-compose
-- 📚 **API Documentation**: Interactive Swagger/OpenAPI docs
+### Prerequisites
 
-## Tech Stack
+- **Python 3.8+**
+- **Poetry** (for dependency management)
+- **MongoDB** (local installation or Docker)
+- **Git**
 
-- **FastAPI** - Modern Python web framework
-- **MongoDB** - Document database
-- **Beanie** - Async ODM for MongoDB
-- **JWT** - JSON Web Tokens for authentication
-- **bcrypt** - Password hashing
-- **SMTP** - Email service
-- **Docker** - Containerization
+### 1. Clone and Setup
 
-## Quick Start
+```bash
+# Clone the repository
+git clone <repository-url>
+cd chanze/backend
 
-### Using Docker (Recommended)
+# Install dependencies
+poetry install
 
-1. **Clone and navigate to the backend directory**
-2. **Copy environment template:**
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Configure environment variables in `.env`:**
-   - Set your SMTP credentials for email functionality
-   - Change the SECRET_KEY for production
-
-4. **Start services:**
-   ```bash
-   docker-compose up -d
-   ```
-
-5. **API will be available at:**
-   - API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-   - MongoDB Admin: http://localhost:8081
-
-### Local Development
-
-1. **Prerequisites:**
-   - Python 3.11+
-   - MongoDB running locally
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. **Run the application:**
-   ```bash
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-## API Endpoints
-
-### Authentication (`/api/v1/auth`)
-
-- `POST /auth/register` - Register new user
-- `POST /auth/verify-email` - Verify email with token
-- `POST /auth/login` - User login
-- `POST /auth/forgot-password` - Request password reset
-- `POST /auth/reset-password` - Reset password with token
-- `GET /auth/me` - Get current user info
-
-### Task Templates (`/api/v1/task-templates`)
-
-- `GET /task-templates` - Get user's templates
-- `POST /task-templates` - Create new template
-- `GET /task-templates/{id}` - Get specific template
-- `PUT /task-templates/{id}` - Update template
-- `DELETE /task-templates/{id}` - Delete template
-
-### Task Items (`/api/v1/task-items`)
-
-- `GET /task-items` - Get user's task items (with optional template filter)
-- `POST /task-items` - Create new task item
-- `GET /task-items/{id}` - Get specific task item
-- `PUT /task-items/{id}` - Update task item
-- `DELETE /task-items/{id}` - Delete task item
-
-## Authentication Flow
-
-1. **Register** with email/password
-2. **Verify email** using token from email
-3. **Login** to get JWT access token
-4. **Include JWT token** in Authorization header: `Bearer <token>`
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MONGODB_URL` | MongoDB connection string | `mongodb://localhost:27017/chanze` |
-| `SECRET_KEY` | JWT secret key | Required |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT token expiration | `1440` (24 hours) |
-| `SMTP_HOST` | Email SMTP host | `smtp.gmail.com` |
-| `SMTP_PORT` | Email SMTP port | `587` |
-| `SMTP_USER` | Email username | Required |
-| `SMTP_PASSWORD` | Email password | Required |
-| `FROM_EMAIL` | Sender email address | `noreply@chanze.app` |
-| `FRONTEND_URL` | Frontend URL for email links | `http://localhost:3000` |
-| `DEBUG` | Enable debug mode | `false` |
-
-## Database Schema
-
-### Users Collection
-```json
-{
-  "_id": "ObjectId",
-  "email": "user@example.com",
-  "password_hash": "bcrypt_hash",
-  "is_active": true,
-  "is_verified": false,
-  "created_at": "2024-01-01T00:00:00Z",
-  "updated_at": "2024-01-01T00:00:00Z",
-  "email_verification_token": "token_string",
-  "password_reset_token": "reset_token",
-  "password_reset_expires": "2024-01-01T01:00:00Z"
-}
+# Activate virtual environment
+poetry shell
 ```
 
-### Task Templates Collection
-```json
-{
-  "_id": "ObjectId",
-  "name": "Daily Tasks",
-  "user_id": "user_object_id",
-  "created_at": "2024-01-01T00:00:00Z",
-  "updated_at": "2024-01-01T00:00:00Z"
-}
+### 2. Environment Configuration
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your configuration
+nano .env
 ```
 
-### Task Items Collection
-```json
-{
-  "_id": "ObjectId",
-  "name": "Complete project",
-  "user_id": "user_object_id",
-  "template_id": "template_object_id",
-  "created_at": "2024-01-01T00:00:00Z",
-  "updated_at": "2024-01-01T00:00:00Z"
-}
+**Required Environment Variables:**
+```env
+# Database
+MONGODB_URL=mongodb://localhost:27017/chanze
+
+# JWT Security
+SECRET_KEY=your-super-secret-jwt-key-change-in-production-must-be-at-least-32-characters
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Email (for authentication)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+FROM_EMAIL=noreply@chanze.app
+
+# Application
+FRONTEND_URL=http://localhost:3000
+DEBUG=true
 ```
 
-## Email Templates
+### 3. Database Setup
 
-The system includes HTML email templates for:
-- **Email Verification**: Welcome email with verification link
-- **Password Reset**: Password reset instructions
-- **Welcome Email**: Sent after successful email verification
-
-## Error Handling
-
-All API errors follow a consistent format:
-
-```json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human readable message",
-    "details": {
-      "field": "field_name",
-      "issue": "Specific issue description"
-    }
-  }
-}
+**Option A: Local MongoDB**
+```bash
+# Install MongoDB
+brew install mongodb/brew/mongodb-community
+brew services start mongodb/brew/mongodb-community
 ```
 
-## Security Features
+**Option B: Docker MongoDB**
+```bash
+# Run MongoDB container
+docker run --name chanze-mongo -p 27017:27017 -d mongo:latest
+```
 
-- **JWT Authentication**: Secure token-based auth
-- **Password Hashing**: bcrypt with 12 rounds
-- **Email Verification**: Required for account activation
-- **Password Reset**: Time-limited reset tokens
-- **Input Validation**: Pydantic schema validation
-- **CORS**: Configurable cross-origin requests
+### 4. Run the Application
 
-## Development
+```bash
+# Development server with hot reload
+poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-### Project Structure
+# Or using Python directly
+poetry run python -m app.main
+```
+
+**API will be available at:**
+- **API**: http://localhost:8000
+- **Interactive Docs**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **Health Check**: http://localhost:8000/health
+
+## 📁 Project Structure
 
 ```
 app/
-├── main.py                 # FastAPI application entry point
-├── config.py              # Configuration settings
-├── dependencies.py        # FastAPI dependencies
-├── api/v1/                # API version 1
-│   ├── api.py             # API router
-│   └── endpoints/         # API endpoints
-├── core/                  # Core functionality
-│   ├── database.py        # Database connection
-│   └── security.py        # Security utilities
-├── models/                # MongoDB models
-├── schemas/               # Pydantic schemas
-├── repositories/          # Data access layer
-├── services/              # Business logic
-└── utils/                 # Utility functions
+├── api/v1/               # API endpoints
+│   ├── endpoints/        # Route handlers
+│   │   ├── auth.py       # Authentication routes
+│   │   ├── task_templates.py
+│   │   └── task_items.py
+│   └── api.py           # API router configuration
+├── core/                # Core functionality
+│   ├── database.py      # MongoDB connection
+│   └── security.py      # JWT, password hashing
+├── models/              # Beanie ODM models
+│   ├── user.py          # User document model
+│   ├── task_template.py # Task template model
+│   └── task_item.py     # Task item model
+├── repositories/        # Data access layer
+│   ├── base.py          # Base repository
+│   ├── user_repository.py
+│   ├── task_template_repository.py
+│   └── task_item_repository.py
+├── services/            # Business logic layer
+│   ├── auth_service.py  # Authentication business logic
+│   ├── email_service.py # Email sending service
+│   ├── task_template_service.py
+│   └── task_item_service.py
+├── schemas/             # Pydantic schemas for API
+│   ├── auth.py          # Authentication schemas
+│   ├── user.py          # User response schemas
+│   ├── task_template.py # Template schemas
+│   └── task_item.py     # Task item schemas
+├── utils/               # Utility functions
+├── config.py            # Application configuration
+├── dependencies.py      # FastAPI dependencies
+└── main.py             # Application entry point
+
+tests/
+├── unit/               # Unit tests
+│   ├── models/         # Model validation tests
+│   ├── repositories/   # Repository logic tests
+│   └── services/       # Service logic tests
+├── integration/        # Integration tests
+├── api/               # API endpoint tests
+└── utils/             # Test utilities and fixtures
 ```
 
-### Adding New Features
+## 🏗️ Architecture Overview
 
-1. **Create model** in `models/`
-2. **Add schema** in `schemas/`
-3. **Implement repository** in `repositories/`
-4. **Add service logic** in `services/`
-5. **Create endpoints** in `api/v1/endpoints/`
-6. **Update router** in `api/v1/api.py`
+The application follows **Clean Architecture** principles:
 
-## Production Deployment
+1. **API Layer** (`app/api/`) - FastAPI routes and request/response handling
+2. **Service Layer** (`app/services/`) - Business logic and orchestration
+3. **Repository Layer** (`app/repositories/`) - Data access abstraction
+4. **Model Layer** (`app/models/`) - Data models using Beanie ODM
 
-### Security Checklist
+**Key Design Patterns:**
+- **Repository Pattern** - Data access abstraction
+- **Service Pattern** - Business logic encapsulation
+- **Dependency Injection** - Loose coupling via FastAPI's DI system
+- **Factory Pattern** - Test data factories for consistent testing
 
-- [ ] Change `SECRET_KEY` to a strong random value
-- [ ] Set `DEBUG=false`
-- [ ] Configure proper SMTP service
-- [ ] Use MongoDB Atlas or dedicated instance
-- [ ] Set up HTTPS with SSL certificates
-- [ ] Configure proper CORS origins
-- [ ] Set up logging and monitoring
-- [ ] Use environment-specific configuration
+## 🔐 Authentication System
 
-### Docker Production
+### User Registration Flow
+1. **POST** `/api/v1/auth/register` - Register new user
+2. Email verification sent to user
+3. **POST** `/api/v1/auth/verify-email` - Verify email with token
+4. User can now log in
+
+### Login Flow
+1. **POST** `/api/v1/auth/login` - Authenticate user
+2. Returns JWT access token
+3. Include token in `Authorization: Bearer <token>` header
+
+### Password Reset Flow
+1. **POST** `/api/v1/auth/forgot-password` - Request reset
+2. **POST** `/api/v1/auth/reset-password` - Reset with token
+
+## 📋 API Endpoints
+
+### Authentication
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/verify-email` - Email verification
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/forgot-password` - Password reset request
+- `POST /api/v1/auth/reset-password` - Password reset
+- `GET /api/v1/auth/me` - Get current user
+
+### Task Templates
+- `GET /api/v1/task-templates` - List user templates
+- `POST /api/v1/task-templates` - Create template
+- `GET /api/v1/task-templates/{id}` - Get template
+- `PUT /api/v1/task-templates/{id}` - Update template
+- `DELETE /api/v1/task-templates/{id}` - Delete template
+
+### Task Items
+- `GET /api/v1/task-items` - List user tasks
+- `POST /api/v1/task-items` - Create task
+- `GET /api/v1/task-items/{id}` - Get task
+- `PUT /api/v1/task-items/{id}` - Update task
+- `DELETE /api/v1/task-items/{id}` - Delete task
+
+## 🧪 Testing
+
+### Running Tests
 
 ```bash
-# Build production image
-docker build -t chanze-api:latest .
-
-# Run with production environment
-docker run -d \
-  --name chanze-api \
-  -p 8000:8000 \
-  --env-file .env.production \
-  chanze-api:latest
-```
-
-## Testing
-
-```bash
-# Install test dependencies
-pip install pytest pytest-asyncio httpx
-
-# Run tests
-pytest
+# Run all tests
+poetry run pytest
 
 # Run with coverage
-pytest --cov=app
+poetry run pytest --cov=app --cov-report=html
+
+# Run specific test categories
+poetry run pytest tests/unit/          # Unit tests only
+poetry run pytest tests/integration/   # Integration tests only
+poetry run pytest tests/api/          # API tests only
+
+# Run with verbose output
+poetry run pytest -v
+
+# Run specific test file
+poetry run pytest tests/unit/models/test_user.py -v
 ```
 
-## Contributing
+### Test Structure
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+- **Unit Tests** (`tests/unit/`) - Test individual components in isolation
+  - Model validation and business logic
+  - Repository methods with mocked database
+  - Service methods with mocked dependencies
 
-## License
+- **Integration Tests** (`tests/integration/`) - Test component interactions
+  - Complete authentication flow
+  - Task management workflows with real database
 
-This project is licensed under the MIT License.
+- **API Tests** (`tests/api/`) - Test HTTP endpoints
+  - Request/response validation
+  - Authentication and authorization
+  - Error handling and edge cases
+
+### Test Coverage
+
+The test suite includes **80+ tests** covering:
+- ✅ **Model validation** (Pydantic schema validation)
+- ✅ **Repository layer** (Database operations)
+- ✅ **Service layer** (Business logic)
+- ✅ **API endpoints** (HTTP request/response)
+- ✅ **Authentication & Authorization**
+- ✅ **Error handling and edge cases**
+
+**Target Coverage**: >85%
+
+## 🛠️ Development Workflow
+
+### Adding a New Feature
+
+1. **Create Model** (if needed)
+   ```python
+   # app/models/new_model.py
+   from beanie import Document
+   
+   class NewModel(Document):
+       field: str
+       
+       class Settings:
+           collection = "new_models"
+   ```
+
+2. **Create Repository**
+   ```python
+   # app/repositories/new_model_repository.py
+   from app.repositories.base import BaseRepository
+   from app.models.new_model import NewModel
+   
+   class NewModelRepository(BaseRepository[NewModel]):
+       def __init__(self):
+           super().__init__(NewModel)
+   ```
+
+3. **Create Service**
+   ```python
+   # app/services/new_model_service.py
+   class NewModelService:
+       def __init__(self):
+           self.repo = NewModelRepository()
+   ```
+
+4. **Create API Schemas**
+   ```python
+   # app/schemas/new_model.py
+   from pydantic import BaseModel
+   
+   class NewModelCreate(BaseModel):
+       field: str
+   ```
+
+5. **Create API Endpoints**
+   ```python
+   # app/api/v1/endpoints/new_models.py
+   from fastapi import APIRouter
+   
+   router = APIRouter(prefix="/new-models", tags=["new-models"])
+   ```
+
+6. **Write Tests**
+   - Unit tests for each layer
+   - Integration tests for workflows
+   - API tests for endpoints
+
+### Database Migrations
+
+Beanie handles schema evolution automatically, but for major changes:
+
+1. **Update Model** - Modify the model definition
+2. **Migration Script** - Create migration if needed
+3. **Test Migration** - Verify with test database
+
+### Code Style
+
+- **Format**: Use automatic formatting (built into most IDEs)
+- **Type Hints**: Always use type hints
+- **Docstrings**: Document public methods and classes
+- **Error Handling**: Use FastAPI's HTTPException with consistent error format
+
+## 🐳 Docker Development
+
+### Using Docker
+
+```bash
+# Build image
+docker build -t chanze-backend .
+
+# Run with Docker Compose (if available)
+docker-compose up -d
+
+# Run container manually
+docker run -d \
+  --name chanze-backend \
+  -p 8000:8000 \
+  --env-file .env \
+  chanze-backend
+```
+
+### Development with Docker
+
+1. **MongoDB Container**:
+   ```bash
+   docker run --name chanze-mongo -p 27017:27017 -d mongo:latest
+   ```
+
+2. **Application Container**:
+   ```bash
+   docker build -t chanze-backend .
+   docker run -p 8000:8000 --link chanze-mongo:mongo chanze-backend
+   ```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**1. MongoDB Connection Errors**
+```bash
+# Check if MongoDB is running
+brew services list | grep mongodb
+# or
+docker ps | grep mongo
+
+# Check connection string in .env
+MONGODB_URL=mongodb://localhost:27017/chanze
+```
+
+**2. Poetry Dependencies**
+```bash
+# Clear cache and reinstall
+poetry cache clear pypi --all
+poetry install --no-cache
+```
+
+**3. Import Errors**
+```bash
+# Make sure you're in the poetry shell
+poetry shell
+
+# Or run with poetry prefix
+poetry run python -m app.main
+```
+
+**4. Test Database Issues**
+```bash
+# Tests use separate test database
+# Make sure MongoDB is running
+# Tests automatically clean up data
+```
+
+**5. Email Configuration**
+- Use **App Passwords** for Gmail (not regular password)
+- Enable 2FA and generate app-specific password
+- For development, you can disable email sending
+
+### Environment Issues
+
+**Python Version**
+```bash
+# Check Python version
+python --version  # Should be 3.8+
+
+# Check Poetry Python
+poetry env info
+```
+
+**Port Conflicts**
+```bash
+# Check what's using port 8000
+lsof -i :8000
+
+# Use different port
+uvicorn app.main:app --port 8001
+```
+
+## 📚 Additional Resources
+
+### Documentation
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Beanie ODM Documentation](https://beanie-odm.dev/)
+- [Pydantic Documentation](https://docs.pydantic.dev/)
+- [Poetry Documentation](https://python-poetry.org/docs/)
+
+### Development Tools
+- **API Testing**: Use `/docs` endpoint for interactive testing
+- **Database GUI**: MongoDB Compass or Studio 3T
+- **Code Editor**: VS Code with Python extension
+
+### Learning Resources
+- **Clean Architecture**: Understanding the layered approach
+- **FastAPI Best Practices**: Async/await patterns
+- **MongoDB with Python**: Beanie ODM patterns
+- **JWT Authentication**: Token-based auth concepts
+
+## 🤝 Contributing
+
+1. **Fork the repository**
+2. **Create feature branch**: `git checkout -b feature/amazing-feature`
+3. **Write tests** for your changes
+4. **Ensure tests pass**: `poetry run pytest`
+5. **Commit changes**: `git commit -m 'Add amazing feature'`
+6. **Push to branch**: `git push origin feature/amazing-feature`
+7. **Create Pull Request**
+
+### Code Review Checklist
+
+- [ ] Tests written and passing
+- [ ] Code follows project structure
+- [ ] API endpoints documented
+- [ ] Error handling implemented
+- [ ] Type hints included
+- [ ] Security considerations addressed
+
+---
+
+## 🎯 Getting Help
+
+**For new developers:**
+1. **Start with Quick Start** - Get the basic setup running
+2. **Explore API docs** - Visit `/docs` to understand endpoints
+3. **Run tests** - Familiarize yourself with the test suite
+4. **Read the code** - Start with `app/main.py` and follow imports
+
+**Questions?** 
+- Check existing issues in the repository
+- Review API documentation at `/docs`
+- Look at test files for usage examples
+
+**Happy coding! 🚀**
