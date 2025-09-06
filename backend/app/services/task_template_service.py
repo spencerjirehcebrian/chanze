@@ -36,6 +36,7 @@ class TaskTemplateService:
     async def get_user_templates(self, user_id: str, skip: int = 0, limit: int = 100) -> TaskTemplatesListResponse:
         """Get all templates for a user"""
         templates = await self.template_repo.get_user_templates(user_id, skip, limit)
+        total = await self.template_repo.count_user_templates(user_id)
         
         template_responses = [
             TaskTemplateResponse(
@@ -47,7 +48,12 @@ class TaskTemplateService:
             for template in templates
         ]
 
-        return TaskTemplatesListResponse(templates=template_responses)
+        return TaskTemplatesListResponse(
+            templates=template_responses,
+            total=total,
+            skip=skip,
+            limit=limit
+        )
 
     async def get_template(self, template_id: str, user_id: str) -> TaskTemplateResponse:
         """Get a specific template"""

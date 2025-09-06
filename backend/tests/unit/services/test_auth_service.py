@@ -23,8 +23,9 @@ class TestAuthService:
     
     @pytest.fixture
     def sample_user(self):
+        from bson import ObjectId
         return User(
-            id="user123",
+            id=ObjectId(),
             email="test@example.com",
             password_hash="hashed_password",
             is_active=True,

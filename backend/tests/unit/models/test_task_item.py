@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from pydantic import ValidationError
 from app.models.task_item import TaskItem
 
@@ -24,7 +24,7 @@ class TestTaskItemModel:
     
     def test_task_item_creation_with_all_fields(self):
         """Test creating a task item with all fields."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         
         item_data = {
             "name": "Test Task Item",
@@ -167,13 +167,13 @@ class TestTaskItemModel:
     
     def test_task_item_field_constraints(self):
         """Test field constraints and validation."""
-        # Test that user_id field is indexed
-        user_id_field = TaskItem.__fields__["user_id"]
-        assert hasattr(user_id_field, "field_info")
+        # Test that user_id field exists and is required
+        user_id_field = TaskItem.model_fields["user_id"]
+        assert user_id_field.is_required()
         
-        # Test that template_id field is indexed and optional
-        template_id_field = TaskItem.__fields__["template_id"]
-        assert hasattr(template_id_field, "field_info")
+        # Test that template_id field exists and is optional
+        template_id_field = TaskItem.model_fields["template_id"]
+        assert not template_id_field.is_required()
     
     def test_task_item_long_name(self):
         """Test task item with very long name."""

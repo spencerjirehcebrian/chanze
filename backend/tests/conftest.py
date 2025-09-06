@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 import pytest_asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import AsyncGenerator, Generator
 from httpx import AsyncClient
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -9,7 +9,7 @@ from beanie import init_beanie
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.config import settings
+from app.config import settings, refresh_settings
 from app.models.user import User
 from app.models.task_template import TaskTemplate
 from app.models.task_item import TaskItem
@@ -30,7 +30,8 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_test_db():
     """Set up test database connection."""
-    # Settings are automatically loaded from .env.test when running pytest
+    # Refresh settings to ensure test environment variables are loaded
+    refresh_settings()
     
     # Connect to test database using the URL from settings
     client = AsyncIOMotorClient(settings.mongodb_url)
@@ -84,8 +85,8 @@ async def test_user(clean_db) -> User:
         password_hash=get_password_hash("testpassword123"),
         is_active=True,
         is_verified=True,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC)
     )
     await user.insert()
     return user
@@ -100,8 +101,8 @@ async def unverified_test_user(clean_db) -> User:
         is_active=True,
         is_verified=False,
         email_verification_token="test_verification_token",
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC)
     )
     await user.insert()
     return user
@@ -116,9 +117,9 @@ async def test_user_with_reset_token(clean_db) -> User:
         is_active=True,
         is_verified=True,
         password_reset_token="test_reset_token",
-        password_reset_expires=datetime.utcnow() + timedelta(hours=1),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        password_reset_expires=datetime.now(UTC) + timedelta(hours=1),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC)
     )
     await user.insert()
     return user
@@ -127,7 +128,7 @@ async def test_user_with_reset_token(clean_db) -> User:
 @pytest_asyncio.fixture
 async def auth_headers(test_user: User) -> dict:
     """Create authorization headers for test user."""
-    token = create_access_token(data={"sub": str(test_user.id)})
+    token = create_access_token(data={"sub": test_user.email, "user_id": str(test_user.id)})
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -137,8 +138,8 @@ async def test_task_template(test_user: User) -> TaskTemplate:
     template = TaskTemplate(
         name="Test Template",
         user_id=str(test_user.id),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC)
     )
     await template.insert()
     return template
@@ -151,8 +152,8 @@ async def test_task_item(test_user: User, test_task_template: TaskTemplate) -> T
         name="Test Task Item",
         user_id=str(test_user.id),
         template_id=str(test_task_template.id),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC)
     )
     await item.insert()
     return item
@@ -168,8 +169,8 @@ async def multiple_test_users(clean_db) -> list[User]:
             password_hash=get_password_hash("testpassword123"),
             is_active=True,
             is_verified=True,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC)
         )
         await user.insert()
         users.append(user)

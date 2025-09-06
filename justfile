@@ -146,11 +146,11 @@ api-docs:
 
 # Run backend tests
 test-backend:
-    cd backend && poetry run pytest -v
+    cd backend && ENVIRONMENT=test poetry run pytest -v
 
 # Run backend tests with coverage
 test-backend-coverage:
-    cd backend && poetry run pytest -v --cov=. --cov-report=html
+    cd backend && ENVIRONMENT=test poetry run pytest -v --cov=. --cov-report=html
 
 # Run frontend tests
 test-frontend:
@@ -208,34 +208,6 @@ health:
     @docker-compose exec mongodb mongosh -u admin -p password123 --authenticationDatabase admin --quiet --eval "print('MongoDB OK')" || echo "MongoDB not responding"
     @echo "Mailpit:"
     @curl -s http://localhost:8025 > /dev/null && echo "Mailpit OK" || echo "Mailpit not responding"
-
-# =============================================================================
-# Utility Commands
-# =============================================================================
-
-# Generate requirements.txt from pyproject.toml
-generate-requirements:
-    cd backend && pip-compile pyproject.toml --output-file requirements.txt
-
-# Update dependencies
-update-deps:
-    cd backend && pip install --upgrade pip && pip install -r requirements.txt --upgrade
-    cd frontend && npm update
-
-# Create a new migration (customize as needed)
-migration name:
-    @echo "Creating migration: {{name}}"
-    # Add your migration creation logic here
-
-# Setup development environment from scratch
-setup:
-    @echo "Setting up Chanze development environment..."
-    just build
-    just up
-    @echo "Waiting for services to start..."
-    sleep 10
-    just health
-    @echo "Setup complete! Run 'just app' to open the application"
 
 # =============================================================================
 # Documentation Commands

@@ -6,13 +6,29 @@ from app.models.user import User
 from typing import Optional
 
 # Security scheme for JWT Bearer token
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> User:
     """Get current authenticated user from JWT token"""
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "code": "MISSING_TOKEN",
+                    "message": "Authentication token is required",
+                    "details": {
+                        "field": "authorization",
+                        "issue": "Authorization header is missing"
+                    }
+                }
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     token = credentials.credentials
     
     # Verify token

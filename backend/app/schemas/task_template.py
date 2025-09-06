@@ -1,10 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 
 class TaskTemplateBase(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=255)
 
 
 class TaskTemplateCreate(TaskTemplateBase):
@@ -12,7 +12,7 @@ class TaskTemplateCreate(TaskTemplateBase):
 
 
 class TaskTemplateUpdate(BaseModel):
-    name: Optional[str] = None
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
 
 
 class TaskTemplateInDB(TaskTemplateBase):
@@ -36,3 +36,6 @@ class TaskTemplateResponse(TaskTemplateBase):
 
 class TaskTemplatesListResponse(BaseModel):
     templates: list[TaskTemplateResponse]
+    total: int
+    limit: int
+    skip: int

@@ -1,5 +1,5 @@
 from typing import List
-from datetime import datetime
+from datetime import datetime, UTC
 from app.models.task_template import TaskTemplate
 from app.repositories.base import BaseRepository
 
@@ -30,7 +30,7 @@ class TaskTemplateRepository(BaseRepository[TaskTemplate]):
             for key, value in kwargs.items():
                 if hasattr(template, key):
                     setattr(template, key, value)
-            template.updated_at = datetime.utcnow()
+            template.updated_at = datetime.now(UTC)
             await template.save()
             return template
         return None

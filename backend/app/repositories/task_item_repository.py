@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 from app.models.task_item import TaskItem
 from app.repositories.base import BaseRepository
 
@@ -41,7 +41,7 @@ class TaskItemRepository(BaseRepository[TaskItem]):
             for key, value in kwargs.items():
                 if hasattr(item, key):
                     setattr(item, key, value)
-            item.updated_at = datetime.utcnow()
+            item.updated_at = datetime.now(UTC)
             await item.save()
             return item
         return None

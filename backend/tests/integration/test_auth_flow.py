@@ -1,5 +1,6 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
+from unittest.mock import AsyncMock
 from app.services.auth_service import auth_service
 from app.models.user import User
 from app.schemas.auth import UserRegister, UserLogin
@@ -21,9 +22,8 @@ class TestAuthenticationFlow:
         
         # Mock email service to avoid sending actual emails
         with pytest.MonkeyPatch.context() as m:
-            mock_email_sent = True
             m.setattr("app.services.email_service.email_service.send_email_verification", 
-                     lambda *args, **kwargs: mock_email_sent)
+                     AsyncMock(return_value=True))
             
             registration_response = await auth_service.register_user(user_data)
         
@@ -44,7 +44,7 @@ class TestAuthenticationFlow:
         # Mock welcome email
         with pytest.MonkeyPatch.context() as m:
             m.setattr("app.services.email_service.email_service.send_welcome_email", 
-                     lambda *args, **kwargs: True)
+                     AsyncMock(return_value=True))
             
             verification_response = await auth_service.verify_email(verification_token)
         
@@ -82,7 +82,7 @@ class TestAuthenticationFlow:
         # Request password reset
         with pytest.MonkeyPatch.context() as m:
             m.setattr("app.services.email_service.email_service.send_password_reset", 
-                     lambda *args, **kwargs: True)
+                     AsyncMock(return_value=True))
             
             reset_request_response = await auth_service.forgot_password(test_user.email)
         
@@ -93,7 +93,12 @@ class TestAuthenticationFlow:
         user = await User.get(test_user.id)
         assert user.password_reset_token is not None
         assert user.password_reset_expires is not None
-        assert user.password_reset_expires > datetime.utcnow()
+        # Handle potential timezone issues in testing
+        now_utc = datetime.now(UTC)
+        reset_expires = user.password_reset_expires
+        if reset_expires.tzinfo is None:
+            reset_expires = reset_expires.replace(tzinfo=UTC)
+        assert reset_expires > now_utc
         
         # Reset password with token
         reset_token = user.password_reset_token
@@ -131,7 +136,7 @@ class TestAuthenticationFlow:
         # Try to verify with token (should work since we don't have expiration logic yet)
         with pytest.MonkeyPatch.context() as m:
             m.setattr("app.services.email_service.email_service.send_welcome_email", 
-                     lambda *args, **kwargs: True)
+                     AsyncMock(return_value=True))
             
             verification_response = await auth_service.verify_email("expired_token")
             assert verification_response.access_token is not None
@@ -146,7 +151,7 @@ class TestAuthenticationFlow:
             is_active=True,
             is_verified=True,
             password_reset_token="expired_reset_token",
-            password_reset_expires=datetime.utcnow() - timedelta(hours=2)
+            password_reset_expires=datetime.now(UTC) - timedelta(hours=2)
         )
         await user.insert()
         

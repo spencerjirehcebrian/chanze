@@ -131,63 +131,63 @@ class TestUserRepository:
     @pytest.mark.asyncio
     async def test_verify_user(self, repository, sample_user):
         """Test verifying a user."""
-        sample_user.save = AsyncMock()
-        original_updated_at = sample_user.updated_at
-        
-        result = await repository.verify_user(sample_user)
-        
-        assert sample_user.is_verified is True
-        assert sample_user.email_verification_token is None
-        assert sample_user.updated_at > original_updated_at
-        sample_user.save.assert_called_once()
-        assert result == sample_user
+        with patch.object(User, 'save', new_callable=AsyncMock) as mock_save:
+            original_updated_at = sample_user.updated_at
+            
+            result = await repository.verify_user(sample_user)
+            
+            assert sample_user.is_verified is True
+            assert sample_user.email_verification_token is None
+            assert sample_user.updated_at > original_updated_at
+            mock_save.assert_called_once()
+            assert result == sample_user
     
     @pytest.mark.asyncio
     async def test_set_reset_token(self, repository, sample_user):
         """Test setting reset token."""
-        sample_user.save = AsyncMock()
-        original_updated_at = sample_user.updated_at
-        
-        result = await repository.set_reset_token(
-            sample_user, 
-            "reset_token", 
-            expires_hours=2
-        )
-        
-        assert sample_user.password_reset_token == "reset_token"
-        assert sample_user.password_reset_expires > datetime.utcnow()
-        assert sample_user.updated_at > original_updated_at
-        sample_user.save.assert_called_once()
-        assert result == sample_user
+        with patch.object(User, 'save', new_callable=AsyncMock) as mock_save:
+            original_updated_at = sample_user.updated_at
+            
+            result = await repository.set_reset_token(
+                sample_user, 
+                "reset_token", 
+                expires_hours=2
+            )
+            
+            assert sample_user.password_reset_token == "reset_token"
+            assert sample_user.password_reset_expires > datetime.utcnow()
+            assert sample_user.updated_at > original_updated_at
+            mock_save.assert_called_once()
+            assert result == sample_user
     
     @pytest.mark.asyncio
     async def test_set_reset_token_default_expiry(self, repository, sample_user):
         """Test setting reset token with default expiry."""
-        sample_user.save = AsyncMock()
-        
-        await repository.set_reset_token(sample_user, "reset_token")
-        
-        # Check that expiry is approximately 1 hour from now
-        expected_expiry = datetime.utcnow() + timedelta(hours=1)
-        time_diff = abs((sample_user.password_reset_expires - expected_expiry).total_seconds())
-        assert time_diff < 5  # Within 5 seconds
+        with patch.object(User, 'save', new_callable=AsyncMock) as mock_save:
+            await repository.set_reset_token(sample_user, "reset_token")
+            
+            # Check that expiry is approximately 1 hour from now
+            expected_expiry = datetime.utcnow() + timedelta(hours=1)
+            time_diff = abs((sample_user.password_reset_expires - expected_expiry).total_seconds())
+            assert time_diff < 5  # Within 5 seconds
+            mock_save.assert_called_once()
     
     @pytest.mark.asyncio
     async def test_reset_password(self, repository, sample_user):
         """Test resetting user password."""
-        sample_user.save = AsyncMock()
-        sample_user.password_reset_token = "reset_token"
-        sample_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
-        original_updated_at = sample_user.updated_at
-        
-        result = await repository.reset_password(sample_user, "new_hashed_password")
-        
-        assert sample_user.password_hash == "new_hashed_password"
-        assert sample_user.password_reset_token is None
-        assert sample_user.password_reset_expires is None
-        assert sample_user.updated_at > original_updated_at
-        sample_user.save.assert_called_once()
-        assert result == sample_user
+        with patch.object(User, 'save', new_callable=AsyncMock) as mock_save:
+            sample_user.password_reset_token = "reset_token"
+            sample_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+            original_updated_at = sample_user.updated_at
+            
+            result = await repository.reset_password(sample_user, "new_hashed_password")
+            
+            assert sample_user.password_hash == "new_hashed_password"
+            assert sample_user.password_reset_token is None
+            assert sample_user.password_reset_expires is None
+            assert sample_user.updated_at > original_updated_at
+            mock_save.assert_called_once()
+            assert result == sample_user
     
     @pytest.mark.asyncio
     async def test_email_exists(self, repository):

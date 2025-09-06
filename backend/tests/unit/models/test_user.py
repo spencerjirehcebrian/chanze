@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from pydantic import ValidationError
 from app.models.user import User
 
@@ -28,7 +28,7 @@ class TestUserModel:
     
     def test_user_creation_with_all_fields(self):
         """Test creating a user with all fields."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         expires = now + timedelta(hours=1)
         
         user_data = {
@@ -110,8 +110,8 @@ class TestUserModel:
         )
         
         # Check that email field has the unique constraint
-        email_field = user.__fields__["email"]
-        assert hasattr(email_field, "field_info")
+        email_field = User.model_fields["email"]
+        assert hasattr(email_field, "annotation")
     
     def test_user_model_settings(self):
         """Test user model settings."""

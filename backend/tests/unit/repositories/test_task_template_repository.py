@@ -98,23 +98,23 @@ class TestTaskTemplateRepository:
     @pytest.mark.asyncio
     async def test_update_template_success(self, repository, sample_template):
         """Test updating a template successfully."""
-        sample_template.save = AsyncMock()
-        original_updated_at = sample_template.updated_at
-        
-        with patch.object(repository, 'get_user_template', new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = sample_template
+        with patch.object(TaskTemplate, 'save', new_callable=AsyncMock) as mock_save:
+            original_updated_at = sample_template.updated_at
             
-            result = await repository.update_template(
-                "template123", 
-                "user123", 
-                name="Updated Template"
-            )
-            
-            mock_get.assert_called_once_with("template123", "user123")
-            assert sample_template.name == "Updated Template"
-            assert sample_template.updated_at > original_updated_at
-            sample_template.save.assert_called_once()
-            assert result == sample_template
+            with patch.object(repository, 'get_user_template', new_callable=AsyncMock) as mock_get:
+                mock_get.return_value = sample_template
+                
+                result = await repository.update_template(
+                    "template123", 
+                    "user123", 
+                    name="Updated Template"
+                )
+                
+                mock_get.assert_called_once_with("template123", "user123")
+                assert sample_template.name == "Updated Template"
+                assert sample_template.updated_at > original_updated_at
+                mock_save.assert_called_once()
+                assert result == sample_template
     
     @pytest.mark.asyncio
     async def test_update_template_not_found(self, repository):
@@ -134,35 +134,33 @@ class TestTaskTemplateRepository:
     @pytest.mark.asyncio
     async def test_update_template_invalid_field(self, repository, sample_template):
         """Test updating a template with invalid field."""
-        sample_template.save = AsyncMock()
-        
-        with patch.object(repository, 'get_user_template', new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = sample_template
-            
-            result = await repository.update_template(
-                "template123", 
-                "user123", 
-                invalid_field="value"
-            )
-            
-            # Invalid field should be ignored
-            assert not hasattr(sample_template, 'invalid_field')
-            sample_template.save.assert_called_once()
-            assert result == sample_template
+        with patch.object(TaskTemplate, 'save', new_callable=AsyncMock) as mock_save:
+            with patch.object(repository, 'get_user_template', new_callable=AsyncMock) as mock_get:
+                mock_get.return_value = sample_template
+                
+                result = await repository.update_template(
+                    "template123", 
+                    "user123", 
+                    invalid_field="value"
+                )
+                
+                # Invalid field should be ignored
+                assert not hasattr(sample_template, 'invalid_field')
+                mock_save.assert_called_once()
+                assert result == sample_template
     
     @pytest.mark.asyncio
     async def test_delete_user_template_success(self, repository, sample_template):
         """Test deleting a user template successfully."""
-        sample_template.delete = AsyncMock()
-        
-        with patch.object(repository, 'get_user_template', new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = sample_template
-            
-            result = await repository.delete_user_template("template123", "user123")
-            
-            mock_get.assert_called_once_with("template123", "user123")
-            sample_template.delete.assert_called_once()
-            assert result is True
+        with patch.object(TaskTemplate, 'delete', new_callable=AsyncMock) as mock_delete:
+            with patch.object(repository, 'get_user_template', new_callable=AsyncMock) as mock_get:
+                mock_get.return_value = sample_template
+                
+                result = await repository.delete_user_template("template123", "user123")
+                
+                mock_get.assert_called_once_with("template123", "user123")
+                mock_delete.assert_called_once()
+                assert result is True
     
     @pytest.mark.asyncio
     async def test_delete_user_template_not_found(self, repository):

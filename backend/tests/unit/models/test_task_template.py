@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from pydantic import ValidationError
 from app.models.task_template import TaskTemplate
 
@@ -23,7 +23,7 @@ class TestTaskTemplateModel:
     
     def test_task_template_creation_with_all_fields(self):
         """Test creating a task template with all fields."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         
         template_data = {
             "name": "Test Template",
@@ -56,11 +56,10 @@ class TestTaskTemplateModel:
     
     def test_task_template_empty_name(self):
         """Test task template creation with empty name."""
-        with pytest.raises(ValidationError) as exc_info:
-            TaskTemplate(name="", user_id="user123")
-        
-        # Empty string should still be valid for name field
-        # If you want to enforce non-empty names, add validation to the model
+        # Empty string should be valid for name field
+        template = TaskTemplate(name="", user_id="user123")
+        assert template.name == ""
+        assert template.user_id == "user123"
     
     def test_task_template_str_representation(self):
         """Test task template string representation."""
@@ -134,9 +133,9 @@ class TestTaskTemplateModel:
     
     def test_task_template_field_constraints(self):
         """Test field constraints and validation."""
-        # Test that user_id field is indexed
-        user_id_field = TaskTemplate.__fields__["user_id"]
-        assert hasattr(user_id_field, "field_info")
+        # Test that user_id field exists and is required
+        user_id_field = TaskTemplate.model_fields["user_id"]
+        assert user_id_field.is_required()
     
     def test_task_template_long_name(self):
         """Test task template with very long name."""

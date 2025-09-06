@@ -58,3 +58,10 @@ def get_env_file() -> str:
 
 
 settings = Settings(_env_file=get_env_file())
+
+
+def refresh_settings() -> Settings:
+    """Refresh settings by creating a new instance with current environment."""
+    global settings
+    settings = Settings(_env_file=get_env_file())
+    return settings
