@@ -19,8 +19,8 @@ export function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
     
     try {
       await signUp({ email, password, acceptTerms: true })
-    } catch (err: any) {
-      setError(err?.message || 'An unexpected error occurred')
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }

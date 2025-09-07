@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
 import { CalendarView } from '../components/calendar';
 import { TaskForm } from '../components/task/TaskForm';
 import { useTasks, useTaskTemplates } from '../hooks/useTasks';

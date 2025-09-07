@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Calendar, List, Grid3X3, Plus, Filter, Settings } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, List, Grid3X3, Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui';
 
 interface CalendarHeaderProps {

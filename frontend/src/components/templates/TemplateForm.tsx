@@ -6,7 +6,7 @@ import type { CreateTaskRequest, TaskTemplate } from '../../types/database';
 
 interface TemplateFormProps {
   template?: TaskTemplate | null;
-  onSubmit: (data: CreateTaskRequest) => Promise<void>;
+  onSubmit?: (data: CreateTaskRequest) => Promise<void>;
   onClose: () => void;
   loading?: boolean;
 }
@@ -95,7 +95,7 @@ export function TemplateForm({ template, onSubmit, onClose, loading = false }: T
         repeat_until: endDate || undefined,
       };
 
-      await onSubmit(templateData);
+      await onSubmit?.(templateData);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save template');

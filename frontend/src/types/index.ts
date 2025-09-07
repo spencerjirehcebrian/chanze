@@ -34,4 +34,6 @@ export interface TaskFormData {
 }
 
 // Legacy alias for backward compatibility
-export interface TodoFormData extends TaskFormData {}
+export interface TodoFormData extends TaskFormData {
+  // Empty interface extending TaskFormData - no additional properties needed
+}

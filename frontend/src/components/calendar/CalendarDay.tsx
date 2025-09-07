@@ -1,4 +1,4 @@
-import { Plus, MoreHorizontal, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
+import { Plus, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { Task } from '../../types/database';
 import type { DeletionType } from '../../services';
@@ -11,7 +11,7 @@ interface CalendarDayProps {
   isSelected: boolean;
   onClick: () => void;
   onTaskToggle: (id: number, isComplete: boolean) => Promise<void>;
-  onTaskDelete: (id: number, deleteType?: DeletionType) => Promise<void>;
+  onTaskDelete?: (id: number, deleteType?: DeletionType) => Promise<void>;
   onAddTask?: () => void;
   className?: string;
   variant?: 'month' | 'week';
@@ -25,7 +25,6 @@ export function CalendarDay({
   isSelected,
   onClick,
   onTaskToggle,
-  onTaskDelete,
   onAddTask,
   className = '',
   variant = 'month'

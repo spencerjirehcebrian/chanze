@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { User, SignInCredentials, SignUpCredentials } from '../../types/auth'
 import { AuthService } from '../../services/authService'
@@ -16,7 +16,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 interface AuthProviderProps {
   children: ReactNode
@@ -164,10 +164,3 @@ export function AuthProvider({ children }: AuthProviderProps) {
   )
 }
 
-export function useAuthContext() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuthContext must be used within an AuthProvider')
-  }
-  return context
-}

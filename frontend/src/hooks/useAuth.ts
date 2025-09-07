@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { AuthService } from '../services/authService';
 import { useAuthStore } from '../stores/authStore';
-import type { User, SignInCredentials, SignUpCredentials } from '../types/auth';
+import type { SignInCredentials, SignUpCredentials } from '../types/auth';
 import { TokenManager } from '../utils/token';
 
 export function useAuth() {

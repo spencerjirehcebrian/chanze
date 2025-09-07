@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { AlertCircle, Plus, Calendar, Repeat, Tag, FileText, File } from 'lucide-react';
 import { Button, Input, Switch, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import type { CreateTaskRequest } from '../../types/database';
-import { TaskService } from '../../services';
 
 interface TaskFormProps {
   onSubmit: (data: CreateTaskRequest) => Promise<void>;

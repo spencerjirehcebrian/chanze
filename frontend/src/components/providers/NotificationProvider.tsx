@@ -25,7 +25,7 @@ interface NotificationContextType {
   info: (title: string, message?: string) => string
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
+export const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
 interface NotificationProviderProps {
   children: ReactNode
@@ -100,7 +100,9 @@ export function NotificationProvider({
 }
 
 function NotificationContainer() {
-  const { notifications, removeNotification } = useNotifications()
+  const context = useContext(NotificationContext)
+  if (!context) return null
+  const { notifications, removeNotification } = context
 
   if (notifications.length === 0) return null
 
@@ -167,10 +169,3 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps) {
   )
 }
 
-export function useNotifications() {
-  const context = useContext(NotificationContext)
-  if (context === undefined) {
-    throw new Error('useNotifications must be used within a NotificationProvider')
-  }
-  return context
-}

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Plus, Repeat, Calendar, Users, BarChart3, Settings } from 'lucide-react';
+import { Plus, Repeat, BarChart3, Settings } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { TemplateItem } from './TemplateItem';
 import { TemplateForm } from './TemplateForm';
 import { useTaskTemplates } from '../../hooks/useTasks';
-import type { TaskTemplate } from '../../types/database';
+import type { TaskTemplate, CreateTaskRequest } from '../../types/database';
 
 interface TemplateManagerProps {
   className?: string;
@@ -36,7 +36,7 @@ export function TemplateManager({ className }: TemplateManagerProps) {
     return true;
   });
 
-  const handleCreateTemplate = async (templateData: any) => {
+  const handleCreateTemplate = async (templateData: CreateTaskRequest) => {
     await createTemplate(templateData);
     setShowCreateForm(false);
   };

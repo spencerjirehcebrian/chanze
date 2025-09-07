@@ -11,7 +11,6 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
-  CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Card, CardContent } from '@/components/ui/card';

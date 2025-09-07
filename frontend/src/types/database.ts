@@ -71,4 +71,6 @@ export interface Database {
 }
 
 // Legacy Todo interface for backward compatibility during migration
-export interface Todo extends Task {}
+export interface Todo extends Task {
+  // Empty interface extending Task - no additional properties needed
+}
