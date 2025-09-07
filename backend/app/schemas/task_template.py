@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 
@@ -16,22 +16,20 @@ class TaskTemplateUpdate(BaseModel):
 
 
 class TaskTemplateInDB(TaskTemplateBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     user_id: str
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class TaskTemplateResponse(TaskTemplateBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class TaskTemplatesListResponse(BaseModel):

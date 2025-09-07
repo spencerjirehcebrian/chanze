@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch, Mock
-from datetime import datetime
+from datetime import datetime, UTC
 from app.repositories.task_template_repository import TaskTemplateRepository
 from app.models.task_template import TaskTemplate
 
@@ -18,8 +18,8 @@ class TestTaskTemplateRepository:
         return TaskTemplate(
             name="Test Template",
             user_id="user123",
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC)
         )
     
     def test_repository_initialization(self, repository):
@@ -76,23 +76,25 @@ class TestTaskTemplateRepository:
         """Test getting a specific user template when found."""
         mock_template = Mock()
         
-        with patch.object(TaskTemplate, 'find_one', new_callable=AsyncMock) as mock_find_one:
-            mock_find_one.return_value = mock_template
+        mock_template.user_id = "user123"
+        
+        with patch.object(TaskTemplate, 'get', new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_template
             
             result = await repository.get_user_template("template123", "user123")
             
-            mock_find_one.assert_called_once_with({"_id": "template123", "user_id": "user123"})
+            mock_get.assert_called_once_with("template123")
             assert result == mock_template
     
     @pytest.mark.asyncio
     async def test_get_user_template_not_found(self, repository):
         """Test getting a specific user template when not found."""
-        with patch.object(TaskTemplate, 'find_one', new_callable=AsyncMock) as mock_find_one:
-            mock_find_one.return_value = None
+        with patch.object(TaskTemplate, 'get', new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = None
             
             result = await repository.get_user_template("template123", "user123")
             
-            mock_find_one.assert_called_once_with({"_id": "template123", "user_id": "user123"})
+            mock_get.assert_called_once_with("template123")
             assert result is None
     
     @pytest.mark.asyncio
@@ -189,25 +191,22 @@ class TestTaskTemplateRepository:
     @pytest.mark.asyncio
     async def test_template_exists_true(self, repository):
         """Test checking if template exists when it does."""
-        mock_query = Mock()
-        mock_query.count = AsyncMock(return_value=1)
+        mock_template = Mock()
+        mock_template.user_id = "user123"
         
-        with patch.object(TaskTemplate, 'find', return_value=mock_query) as mock_find:
+        with patch.object(TaskTemplate, 'get', new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_template
             result = await repository.template_exists("template123", "user123")
             
-            mock_find.assert_called_once_with({"_id": "template123", "user_id": "user123"})
-            mock_query.count.assert_called_once()
+            mock_get.assert_called_once_with("template123")
             assert result is True
     
     @pytest.mark.asyncio
     async def test_template_exists_false(self, repository):
         """Test checking if template exists when it doesn't."""
-        mock_query = Mock()
-        mock_query.count = AsyncMock(return_value=0)
-        
-        with patch.object(TaskTemplate, 'find', return_value=mock_query) as mock_find:
+        with patch.object(TaskTemplate, 'get', new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = None
             result = await repository.template_exists("template123", "user123")
             
-            mock_find.assert_called_once_with({"_id": "template123", "user_id": "user123"})
-            mock_query.count.assert_called_once()
+            mock_get.assert_called_once_with("template123")
             assert result is False

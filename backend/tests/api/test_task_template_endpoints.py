@@ -201,7 +201,7 @@ class TestTaskTemplateEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert "message" in data
-        assert "deleted_items" in data
+        assert "deleted_items_count" in data
 
     @pytest.mark.asyncio
     async def test_delete_task_template_not_found(self, async_client: AsyncClient, auth_headers, clean_db):
@@ -244,7 +244,7 @@ class TestTaskTemplateEndpoints:
         
         # Create auth headers for user2
         from app.core.security import create_access_token
-        user2_token = create_access_token(data={"sub": str(user2.id)})
+        user2_token = create_access_token(data={"sub": user2.email, "user_id": str(user2.id)})
         user2_headers = {"Authorization": f"Bearer {user2_token}"}
         
         # User2 tries to access user1's template

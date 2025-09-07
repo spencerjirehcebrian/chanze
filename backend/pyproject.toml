@@ -27,6 +27,29 @@ pytest-asyncio = "~0.21.1"
 httpx = "~0.25.2"
 pytest-cov = ">=3.0.0,<4.0.0"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = [
+    "-v",
+    "--tb=short", 
+    "--strict-markers",
+    "--disable-warnings",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-fail-under=80"
+]
+asyncio_mode = "auto"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "api: API tests",
+    "slow: Slow running tests"
+]
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"

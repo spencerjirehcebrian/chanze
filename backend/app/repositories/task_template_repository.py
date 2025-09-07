@@ -21,7 +21,13 @@ class TaskTemplateRepository(BaseRepository[TaskTemplate]):
 
     async def get_user_template(self, template_id: str, user_id: str) -> TaskTemplate | None:
         """Get a specific template for a user"""
-        return await TaskTemplate.find_one({"_id": template_id, "user_id": user_id})
+        try:
+            template = await TaskTemplate.get(template_id)
+            if template and template.user_id == user_id:
+                return template
+            return None
+        except Exception:
+            return None
 
     async def update_template(self, template_id: str, user_id: str, **kwargs) -> TaskTemplate | None:
         """Update a template for a user"""
@@ -49,5 +55,8 @@ class TaskTemplateRepository(BaseRepository[TaskTemplate]):
 
     async def template_exists(self, template_id: str, user_id: str) -> bool:
         """Check if template exists for user"""
-        count = await TaskTemplate.find({"_id": template_id, "user_id": user_id}).count()
-        return count > 0
+        try:
+            template = await TaskTemplate.get(template_id)
+            return template is not None and template.user_id == user_id
+        except Exception:
+            return False

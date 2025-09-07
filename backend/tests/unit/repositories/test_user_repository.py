@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch, Mock
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from app.repositories.user_repository import UserRepository
 from app.models.user import User
 
@@ -20,8 +20,8 @@ class TestUserRepository:
             password_hash="hashed_password",
             is_active=True,
             is_verified=True,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC)
         )
     
     def test_repository_initialization(self, repository):
@@ -57,7 +57,7 @@ class TestUserRepository:
     async def test_get_by_reset_token_valid(self, repository):
         """Test getting user by reset token with valid expiration."""
         mock_user = Mock()
-        mock_user.password_reset_expires = datetime.utcnow() + timedelta(minutes=30)
+        mock_user.password_reset_expires = datetime.now(UTC) + timedelta(minutes=30)
         
         with patch.object(repository, 'get_by_field', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_user
@@ -71,7 +71,7 @@ class TestUserRepository:
     async def test_get_by_reset_token_expired(self, repository):
         """Test getting user by reset token with expired token."""
         mock_user = Mock()
-        mock_user.password_reset_expires = datetime.utcnow() - timedelta(minutes=30)
+        mock_user.password_reset_expires = datetime.now(UTC) - timedelta(minutes=30)
         
         with patch.object(repository, 'get_by_field', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_user
@@ -155,7 +155,7 @@ class TestUserRepository:
             )
             
             assert sample_user.password_reset_token == "reset_token"
-            assert sample_user.password_reset_expires > datetime.utcnow()
+            assert sample_user.password_reset_expires > datetime.now(UTC)
             assert sample_user.updated_at > original_updated_at
             mock_save.assert_called_once()
             assert result == sample_user
@@ -167,7 +167,7 @@ class TestUserRepository:
             await repository.set_reset_token(sample_user, "reset_token")
             
             # Check that expiry is approximately 1 hour from now
-            expected_expiry = datetime.utcnow() + timedelta(hours=1)
+            expected_expiry = datetime.now(UTC) + timedelta(hours=1)
             time_diff = abs((sample_user.password_reset_expires - expected_expiry).total_seconds())
             assert time_diff < 5  # Within 5 seconds
             mock_save.assert_called_once()
@@ -177,7 +177,7 @@ class TestUserRepository:
         """Test resetting user password."""
         with patch.object(User, 'save', new_callable=AsyncMock) as mock_save:
             sample_user.password_reset_token = "reset_token"
-            sample_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+            sample_user.password_reset_expires = datetime.now(UTC) + timedelta(hours=1)
             original_updated_at = sample_user.updated_at
             
             result = await repository.reset_password(sample_user, "new_hashed_password")

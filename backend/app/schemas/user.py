@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 
 
@@ -18,22 +18,20 @@ class UserUpdate(BaseModel):
 
 
 class UserInDB(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     is_active: bool
     is_verified: bool
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     is_active: bool
     is_verified: bool
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True

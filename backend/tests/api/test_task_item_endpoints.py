@@ -328,7 +328,7 @@ class TestTaskItemEndpoints:
         
         # Create auth headers for user2
         from app.core.security import create_access_token
-        user2_token = create_access_token(data={"sub": str(user2.id)})
+        user2_token = create_access_token(data={"sub": user2.email, "user_id": str(user2.id)})
         user2_headers = {"Authorization": f"Bearer {user2_token}"}
         
         # User2 tries to access user1's task item
