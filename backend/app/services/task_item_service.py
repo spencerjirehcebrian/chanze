@@ -1,7 +1,6 @@
 from typing import Optional
+from datetime import datetime, UTC
 from fastapi import HTTPException, status
-from app.repositories.task_item_repository import TaskItemRepository
-from app.repositories.task_template_repository import TaskTemplateRepository
 from app.schemas.task_item import (
     TaskItemCreate, 
     TaskItemUpdate, 
@@ -9,6 +8,7 @@ from app.schemas.task_item import (
     TaskItemsListResponse
 )
 from app.models.task_item import TaskItem
+from app.models.task_template import TaskTemplate
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,17 +16,20 @@ logger = logging.getLogger(__name__)
 
 class TaskItemService:
     def __init__(self):
-        self.item_repo = TaskItemRepository()
-        self.template_repo = TaskTemplateRepository()
+        pass
 
     async def create_item(self, item_data: TaskItemCreate, user_id: str) -> TaskItemResponse:
         """Create a new task item"""
         # Validate template_id if provided
         if item_data.template_id:
-            template_exists = await self.template_repo.template_exists(
-                item_data.template_id, user_id
-            )
-            if not template_exists:
+            try:
+                template = await TaskTemplate.get(item_data.template_id)
+                if not template or template.user_id != user_id:
+                    template = None
+            except Exception:
+                template = None
+                
+            if not template:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail={
@@ -41,11 +44,12 @@ class TaskItemService:
                     }
                 )
 
-        item = await self.item_repo.create_item(
+        item = TaskItem(
             name=item_data.name,
             user_id=user_id,
             template_id=item_data.template_id
         )
+        await item.insert()
 
         return TaskItemResponse(
             id=str(item.id),
@@ -65,8 +69,14 @@ class TaskItemService:
         """Get all task items for a user, optionally filtered by template"""
         # Validate template_id if provided
         if template_id:
-            template_exists = await self.template_repo.template_exists(template_id, user_id)
-            if not template_exists:
+            try:
+                template = await TaskTemplate.get(template_id)
+                if not template or template.user_id != user_id:
+                    template = None
+            except Exception:
+                template = None
+                
+            if not template:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail={
@@ -81,8 +91,12 @@ class TaskItemService:
                     }
                 )
 
-        items = await self.item_repo.get_user_items(user_id, template_id, skip, limit)
-        total = await self.item_repo.count_user_items(user_id, template_id)
+        query = {"user_id": user_id}
+        if template_id:
+            query["template_id"] = template_id
+        
+        items = await TaskItem.find(query).skip(skip).limit(limit).to_list()
+        total = await TaskItem.find(query).count()
         
         item_responses = [
             TaskItemResponse(
@@ -104,7 +118,12 @@ class TaskItemService:
 
     async def get_item(self, item_id: str, user_id: str) -> TaskItemResponse:
         """Get a specific task item"""
-        item = await self.item_repo.get_user_item(item_id, user_id)
+        try:
+            item = await TaskItem.get(item_id)
+            if not item or item.user_id != user_id:
+                item = None
+        except Exception:
+            item = None
         
         if not item:
             raise HTTPException(
@@ -136,8 +155,14 @@ class TaskItemService:
         user_id: str
     ) -> TaskItemResponse:
         """Update a task item"""
-        # Check if item exists
-        existing_item = await self.item_repo.get_user_item(item_id, user_id)
+        # Check if item exists and belongs to user
+        try:
+            existing_item = await TaskItem.get(item_id)
+            if not existing_item or existing_item.user_id != user_id:
+                existing_item = None
+        except Exception:
+            existing_item = None
+            
         if not existing_item:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -155,10 +180,14 @@ class TaskItemService:
 
         # Validate template_id if being updated
         if item_data.template_id is not None and item_data.template_id != "":
-            template_exists = await self.template_repo.template_exists(
-                item_data.template_id, user_id
-            )
-            if not template_exists:
+            try:
+                template = await TaskTemplate.get(item_data.template_id)
+                if not template or template.user_id != user_id:
+                    template = None
+            except Exception:
+                template = None
+                
+            if not template:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail={
@@ -174,37 +203,37 @@ class TaskItemService:
                 )
 
         # Update fields that are provided
-        update_data = {}
+        updated = False
         if item_data.name is not None:
-            update_data["name"] = item_data.name
+            existing_item.name = item_data.name
+            updated = True
         if item_data.template_id is not None:
             # Allow setting template_id to None (empty string becomes None)
-            update_data["template_id"] = item_data.template_id if item_data.template_id != "" else None
+            existing_item.template_id = item_data.template_id if item_data.template_id != "" else None
+            updated = True
 
-        if not update_data:
-            # No updates provided, return current item
-            return TaskItemResponse(
-                id=str(existing_item.id),
-                name=existing_item.name,
-                template_id=existing_item.template_id,
-                created_at=existing_item.created_at,
-                updated_at=existing_item.updated_at
-            )
-
-        item = await self.item_repo.update_item(item_id, user_id, **update_data)
+        if updated:
+            existing_item.updated_at = datetime.now(UTC)
+            await existing_item.save()
 
         return TaskItemResponse(
-            id=str(item.id),
-            name=item.name,
-            template_id=item.template_id,
-            created_at=item.created_at,
-            updated_at=item.updated_at
+            id=str(existing_item.id),
+            name=existing_item.name,
+            template_id=existing_item.template_id,
+            created_at=existing_item.created_at,
+            updated_at=existing_item.updated_at
         )
 
     async def delete_item(self, item_id: str, user_id: str) -> dict:
         """Delete a task item"""
-        # Check if item exists
-        item = await self.item_repo.get_user_item(item_id, user_id)
+        # Check if item exists and belongs to user
+        try:
+            item = await TaskItem.get(item_id)
+            if not item or item.user_id != user_id:
+                item = None
+        except Exception:
+            item = None
+            
         if not item:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -221,7 +250,7 @@ class TaskItemService:
             )
 
         # Delete the item
-        await self.item_repo.delete_user_item(item_id, user_id)
+        await item.delete()
 
         logger.info(f"Deleted item {item_id} for user {user_id}")
 

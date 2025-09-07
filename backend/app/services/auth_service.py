@@ -1,7 +1,6 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional
 from fastapi import HTTPException, status
-from app.repositories.user_repository import UserRepository
 from app.services.email_service import email_service
 from app.core.security import (
     verify_password, 
@@ -20,12 +19,13 @@ logger = logging.getLogger(__name__)
 
 class AuthService:
     def __init__(self):
-        self.user_repo = UserRepository()
+        pass
 
     async def register_user(self, user_data: UserRegister) -> AuthResponse:
         """Register a new user with email verification"""
         # Check if email already exists
-        if await self.user_repo.email_exists(user_data.email):
+        existing_user = await User.find_one({"email": user_data.email})
+        if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail={
@@ -61,11 +61,14 @@ class AuthService:
         password_hash = get_password_hash(user_data.password)
         verification_token = generate_random_token()
         
-        user = await self.user_repo.create_user(
+        user = User(
             email=user_data.email,
             password_hash=password_hash,
-            verification_token=verification_token
+            email_verification_token=verification_token,
+            is_active=True,
+            is_verified=False
         )
+        await user.insert()
 
         # Send verification email
         email_sent = await email_service.send_email_verification(
@@ -84,7 +87,7 @@ class AuthService:
 
     async def verify_email(self, token: str) -> AuthResponse:
         """Verify user email with token"""
-        user = await self.user_repo.get_by_verification_token(token)
+        user = await User.find_one({"email_verification_token": token})
         
         if not user:
             raise HTTPException(
@@ -102,7 +105,10 @@ class AuthService:
             )
 
         # Verify user
-        user = await self.user_repo.verify_user(user)
+        user.is_verified = True
+        user.email_verification_token = None
+        user.updated_at = datetime.now(UTC)
+        await user.save()
 
         # Create access token
         access_token = create_access_token(
@@ -121,7 +127,7 @@ class AuthService:
 
     async def login_user(self, login_data: UserLogin) -> AuthResponse:
         """Authenticate user and return JWT token"""
-        user = await self.user_repo.get_by_email(login_data.email)
+        user = await User.find_one({"email": login_data.email})
         
         if not user or not verify_password(login_data.password, user.password_hash):
             raise HTTPException(
@@ -182,7 +188,7 @@ class AuthService:
 
     async def forgot_password(self, email: str) -> AuthResponse:
         """Send password reset email"""
-        user = await self.user_repo.get_by_email(email)
+        user = await User.find_one({"email": email})
         
         # Always return success message for security (don't reveal if email exists)
         message = "If email exists, password reset instructions have been sent"
@@ -192,11 +198,10 @@ class AuthService:
             reset_token = generate_random_token()
             
             # Set reset token with expiration
-            await self.user_repo.set_reset_token(
-                user, 
-                reset_token, 
-                settings.password_reset_expire_hours
-            )
+            user.password_reset_token = reset_token
+            user.password_reset_expires = datetime.now(UTC) + timedelta(hours=settings.password_reset_expire_hours)
+            user.updated_at = datetime.now(UTC)
+            await user.save()
             
             # Send reset email
             email_sent = await email_service.send_password_reset(
@@ -211,9 +216,29 @@ class AuthService:
 
     async def reset_password(self, token: str, new_password: str) -> AuthResponse:
         """Reset password with token"""
-        user = await self.user_repo.get_by_reset_token(token)
+        user = await User.find_one({"password_reset_token": token})
         
-        if not user:
+        if not user or not user.password_reset_expires:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "error": {
+                        "code": "INVALID_TOKEN",
+                        "message": "Invalid or expired reset token",
+                        "details": {
+                            "field": "token",
+                            "issue": "Token is invalid or has expired"
+                        }
+                    }
+                }
+            )
+        
+        # Check if token has expired
+        now_utc = datetime.now(UTC)
+        reset_expires = user.password_reset_expires
+        if reset_expires.tzinfo is None:
+            reset_expires = reset_expires.replace(tzinfo=UTC)
+        if reset_expires <= now_utc:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={
@@ -247,7 +272,11 @@ class AuthService:
 
         # Reset password
         new_password_hash = get_password_hash(new_password)
-        await self.user_repo.reset_password(user, new_password_hash)
+        user.password_hash = new_password_hash
+        user.password_reset_token = None
+        user.password_reset_expires = None
+        user.updated_at = datetime.now(UTC)
+        await user.save()
 
         return AuthResponse(message="Password reset successfully")
 
@@ -262,7 +291,7 @@ class AuthService:
                 detail="Invalid token payload"
             )
 
-        user = await self.user_repo.get_by_id(user_id)
+        user = await User.get(user_id)
         
         if not user or not user.is_active:
             raise HTTPException(
